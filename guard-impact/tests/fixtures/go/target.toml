@@ -1,0 +1,10 @@
+version = 1
+
+[app]
+name = "go-fixture"
+languages = ["go"]
+base_url = "http://localhost:8080"
+
+[areas.money]
+description = "Money formatting"
+paths = ["internal/money/**"]

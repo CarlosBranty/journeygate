@@ -1,0 +1,6 @@
+{
+  "iid": 7,
+  "changes": [
+    { "old_path": "lib/a.rb", "new_path": "lib/a.rb", "new_file": true, "renamed_file": false, "deleted_file": false, "diff": "" }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "app": {
+    "name": "saunas",
+    "languages": ["php", "typescript"],
+    "start": "docker compose -f docker-compose.yml up -d --wait postgres redis mailpit",
+    "stop": "docker compose -f docker-compose.yml down",
+    "base_url": "http://localhost:3000",
+    "ready_path": "/"
+  },
+  "services": [
+    {
+      "name": "backend",
+      "cwd": "backend",
+      "start": "bun run dev",
+      "ready_url": "http://localhost:3001/health"
+    },
+    {
+      "name": "billing",
+      "cwd": "billing",
+      "start": "php artisan serve --port 8000",
+      "ready_url": "http://localhost:8000/"
+    },
+    {
+      "name": "frontend",
+      "cwd": "frontend",
+      "start": "bun run dev",
+      "stop": "bun run clean",
+      "ready_url": "http://localhost:3000/"
+    }
+  ],
+  "areas": {
+    "backend": {
+      "description": "TODO: describe backend",
+      "paths": ["backend/**"]
+    },
+    "billing": {
+      "description": "TODO: describe billing",
+      "paths": ["billing/**"]
+    },
+    "frontend": {
+      "description": "TODO: describe frontend",
+      "paths": ["frontend/**"]
+    }
+  }
+}

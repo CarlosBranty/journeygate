@@ -1,0 +1,18 @@
+version = 1
+
+[app]
+name = "ts-fixture"
+languages = ["typescript"]
+base_url = "http://localhost:3000"
+
+[areas.checkout]
+description = "Cart and payment"
+paths = ["src/checkout/**"]
+sensitive = true
+
+[areas.ui_general]
+description = "Shared UI components"
+paths = ["src/components/**"]
+
+[hard_rules]
+human_only_paths = ["infra/**"]

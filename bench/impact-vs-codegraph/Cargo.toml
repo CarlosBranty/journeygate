@@ -1,0 +1,17 @@
+[package]
+name = "impact-vs-codegraph"
+description = "Benchmark harness: drives guard-impact's public API over benchmark clones."
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+# Standalone project: deliberately NOT a member of the guard workspace.
+[workspace]
+
+[dependencies]
+guard-core = { path = "../../guard-core" }
+guard-impact = { path = "../../guard-impact" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"

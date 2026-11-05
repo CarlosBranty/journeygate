@@ -1,0 +1,5 @@
+**.github/FUNDING.yml** — 0 symbols, no other indexed file depends on it
+
+_No indexed symbols in this file._
+
+> Drop `symbolsOnly` (or pass `offset`/`limit`) to read the source, like Read.

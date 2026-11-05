@@ -1,0 +1,17 @@
+{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "user": { "username": "dev" },
+  "project": { "id": 42, "path_with_namespace": "acme/platform/shop" },
+  "object_attributes": {
+    "id": 9001,
+    "iid": 7,
+    "title": "SHOP-456 checkout copy",
+    "source_branch": "feature/SHOP-456-checkout",
+    "target_branch": "main",
+    "state": "opened",
+    "action": "update",
+    "oldrev": "ffffffffffffffffffffffffffffffffffffffff",
+    "last_commit": { "id": "cccccccccccccccccccccccccccccccccccccccc", "message": "copy" }
+  }
+}

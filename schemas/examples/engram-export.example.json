@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "exported_at": "2026-11-01T12:00:00Z",
+  "sessions": [
+    {
+      "id": "guard-acme/shop",
+      "project": "acme/shop",
+      "directory": "",
+      "started_at": "2026-10-01T00:00:00Z"
+    }
+  ],
+  "observations": [
+    {
+      "id": 12,
+      "sync_id": "guard-fact-12",
+      "session_id": "guard-acme/shop",
+      "type": "discovery",
+      "title": "catalog/stock-badge",
+      "content": "Stock badge reads product.stock, not inventory.available\n\nscope: journey:catalog\ncommit: 0123456789abcdef0123456789abcdef01234567\nrun: run-20261031-0007\nevidence: s3://guard-evidence/runs/run-20261031-0007/trace.zip\nstatus: active",
+      "project": "acme/shop",
+      "scope": "project",
+      "topic_key": "guard/journey/catalog/catalog/stock-badge",
+      "revision_count": 1,
+      "duplicate_count": 1,
+      "created_at": "2026-10-31T09:00:00Z",
+      "updated_at": "2026-10-31T09:00:00Z"
+    },
+    {
+      "id": 7,
+      "sync_id": "guard-fact-7",
+      "session_id": "guard-acme/shop",
+      "type": "bugfix",
+      "title": "checkout/pay-timeout",
+      "content": "Payment step times out when the 3DS iframe loads late\n\nscope: journey:checkout\ncommit: 89abcdef0123456789abcdef0123456789abcdef\nstatus: invalidated",
+      "project": "acme/shop",
+      "scope": "project",
+      "topic_key": "guard/journey/checkout/checkout/pay-timeout",
+      "revision_count": 1,
+      "duplicate_count": 1,
+      "superseded_by_sync_id": "guard-fact-15",
+      "created_at": "2026-10-20T09:00:00Z",
+      "updated_at": "2026-10-28T09:00:00Z",
+      "deleted_at": "2026-10-28T09:00:00Z"
+    }
+  ],
+  "prompts": []
+}

@@ -1,0 +1,12 @@
+{
+  "action": "synchronize",
+  "number": 12,
+  "pull_request": {
+    "number": 12,
+    "title": "Fix cart totals",
+    "merged": false,
+    "head": { "ref": "SHOP-123-fix-cart", "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    "base": { "ref": "main", "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+  },
+  "repository": { "full_name": "acme/shop" }
+}

@@ -1,0 +1,11 @@
+<main id="main" hx-get="/flaky" hx-trigger="every 30s" hx-swap="outerHTML">
+<h1>Flaky tests</h1>
+<p>Over the last 50 gate results.</p>
+{% include "_notice.html" %}
+<table>
+<thead><tr><th>Test</th><th>Journey</th><th>Flaky runs</th><th>Runs</th><th>Rate</th><th>Quarantined</th></tr></thead>
+<tbody>
+{% for r in rows %}<tr><td>{{ r.test_id }}</td><td>{{ r.journey }}</td><td>{{ r.flaky }}</td><td>{{ r.runs }}</td><td>{{ r.rate }}</td><td>{% if r.quarantined %}yes{% else %}no{% endif %}</td></tr>
+{% endfor %}</tbody>
+</table>
+</main>

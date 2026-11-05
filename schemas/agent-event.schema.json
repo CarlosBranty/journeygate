@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/agent-event.schema.json",
+  "title": "One line of /task/events.jsonl",
+  "description": "Appended by the runtime, one JSON object per line, seq strictly increasing from 1 (docs/contracts/agent-task.md). Deserialized into guard_core::ports::RuntimeEvent.",
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "seq": { "type": "integer", "minimum": 1 },
+    "ts": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$" },
+    "usage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input_tokens", "output_tokens", "cached_input_tokens", "cache_creation_input_tokens"],
+      "properties": {
+        "input_tokens": { "$ref": "#/$defs/count" },
+        "output_tokens": { "$ref": "#/$defs/count" },
+        "cached_input_tokens": { "$ref": "#/$defs/count" },
+        "cache_creation_input_tokens": { "$ref": "#/$defs/count" }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["seq", "ts", "kind", "model", "usage", "cost_usd"],
+      "properties": {
+        "seq": { "$ref": "#/$defs/seq" }, "ts": { "$ref": "#/$defs/ts" }, "kind": { "const": "model_call" },
+        "model": { "type": "string", "minLength": 1 }, "usage": { "$ref": "#/$defs/usage" },
+        "cost_usd": { "type": "number", "minimum": 0 }
+      }
+    },
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["seq", "ts", "kind", "tool", "ok", "duration_ms"],
+      "properties": {
+        "seq": { "$ref": "#/$defs/seq" }, "ts": { "$ref": "#/$defs/ts" }, "kind": { "const": "tool_call" },
+        "tool": { "type": "string", "minLength": 1 }, "ok": { "type": "boolean" },
+        "duration_ms": { "$ref": "#/$defs/count" }
+      }
+    },
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["seq", "ts", "kind", "text"],
+      "properties": {
+        "seq": { "$ref": "#/$defs/seq" }, "ts": { "$ref": "#/$defs/ts" }, "kind": { "const": "message" },
+        "text": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["seq", "ts", "kind", "message"],
+      "properties": {
+        "seq": { "$ref": "#/$defs/seq" }, "ts": { "$ref": "#/$defs/ts" }, "kind": { "const": "error" },
+        "message": { "type": "string", "maxLength": 4000 }
+      }
+    }
+  ]
+}

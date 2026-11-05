@@ -1,0 +1,13 @@
+{
+  "id": 81,
+  "iid": 6,
+  "project_id": 3,
+  "title": "SHOP-1: old title",
+  "state": "opened",
+  "target_branch": "trunk",
+  "source_branch": "agent/SHOP-1",
+  "labels": ["agent"],
+  "work_in_progress": false,
+  "merge_when_pipeline_succeeds": false,
+  "web_url": "https://gitlab.example.com/acme/shop/-/merge_requests/6"
+}

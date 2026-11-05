@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/journeys.schema.json",
+  "title": "catalog/journeys.json",
+  "description": "Journey catalog: the source of truth for test routing. Contract: docs/contracts/journeys-catalog.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "journeys"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "journeys": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/journey" }
+    }
+  },
+  "$defs": {
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "area", "title", "impact_question", "paths", "smoke", "quarantined"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$",
+          "description": "Unique id; used verbatim in the @journey:<id> tag."
+        },
+        "area": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Key of an [areas.<key>] table in target.toml."
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "impact_question": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Phrased as a statement whose truth probability is asked (Phase 2+)."
+        },
+        "paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Repo-relative globs of the app repo; a changed file matching any of them selects the journey."
+        },
+        "smoke": { "type": "boolean" },
+        "quarantined": { "type": "boolean" }
+      }
+    }
+  }
+}

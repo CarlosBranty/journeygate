@@ -1,0 +1,26 @@
+[
+  {
+    "path": "src/preset/quick.test.ts",
+    "language": "typescript",
+    "nodeCount": 4,
+    "size": 1034
+  },
+  {
+    "path": "src/preset/quick.ts",
+    "language": "typescript",
+    "nodeCount": 9,
+    "size": 719
+  },
+  {
+    "path": "src/preset/tiny.test.ts",
+    "language": "typescript",
+    "nodeCount": 4,
+    "size": 1006
+  },
+  {
+    "path": "src/preset/tiny.ts",
+    "language": "typescript",
+    "nodeCount": 7,
+    "size": 554
+  }
+]

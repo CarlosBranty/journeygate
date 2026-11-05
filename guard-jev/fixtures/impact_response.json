@@ -1,0 +1,8 @@
+{
+  "model": "jev-1.13.0",
+  "answers": {
+    "impact_0": {"type": "noul", "noul": 0.93},
+    "impact_1": {"type": "noul", "noul": 0.02}
+  },
+  "usage": {"input_tokens": 912, "output_tokens": 18}
+}

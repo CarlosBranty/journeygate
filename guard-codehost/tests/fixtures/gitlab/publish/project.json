@@ -1,0 +1,9 @@
+{
+  "id": 3,
+  "name": "shop",
+  "path": "shop",
+  "path_with_namespace": "acme/shop",
+  "default_branch": "trunk",
+  "http_url_to_repo": "https://gitlab.example.com/acme/shop.git",
+  "web_url": "https://gitlab.example.com/acme/shop"
+}

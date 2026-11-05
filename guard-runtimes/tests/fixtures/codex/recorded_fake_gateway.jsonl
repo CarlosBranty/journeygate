@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"01a1964b-8969-7f83-9796-cfb1a388c826"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Model metadata for `openai/gpt-5` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."}}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_1","type":"agent_message","text":"Fake reply: done."}}
+{"type":"turn.completed","usage":{"input_tokens":120,"cached_input_tokens":64,"cache_write_input_tokens":0,"output_tokens":5,"reasoning_output_tokens":0}}

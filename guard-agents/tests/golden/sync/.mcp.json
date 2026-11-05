@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "guard": {
+      "args": [
+        "mcp"
+      ],
+      "command": "guard"
+    }
+  }
+}

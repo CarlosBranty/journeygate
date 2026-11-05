@@ -1,0 +1,82 @@
+name: guard
+on:
+  pull_request:
+
+# plan and shard run code from the PR: they only read. Write permissions and
+# the test token go to the jobs and steps that need them.
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: <action-ref>
+      - uses: actions/cache/restore@v4          # durations from earlier runs balance the shards
+        with:
+          path: .guard/durations.json
+          key: guard-durations-${{ github.run_id }}
+          restore-keys: guard-durations-
+      - run: guard gate plan --shards 2 --out plan/
+      - uses: actions/upload-artifact@v4
+        with: { name: shard-plan, path: plan/ }
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - uses: <action-ref>
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: e2e-playwright
+      - uses: actions/download-artifact@v4
+        with: { name: shard-plan, path: plan/ }
+      # Starts the app with [app].start, runs this shard headless, stops the app.
+      - run: guard gate shard --index ${{ matrix.index }} --plan plan/
+        env:
+          GUARD_TEST_TOKEN: ${{ secrets.GUARD_TEST_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blob-${{ matrix.index }}
+          path: e2e-playwright/blob-report/
+
+  finalize:
+    needs: shard
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write          # publishes the "guard" check run
+      pull-requests: write   # comments on the PR
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }                # the baseline run needs the base commit
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - uses: <action-ref>
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: e2e-playwright
+      - uses: actions/download-artifact@v4
+        with: { pattern: blob-*, path: all-blobs/, merge-multiple: true }
+      # Merges the shards, re-runs 3/3 failures on the base commit, decides,
+      # publishes the "guard" check and the PR comment.
+      - run: guard gate finalize --blobs all-blobs/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GUARD_TEST_TOKEN: ${{ secrets.GUARD_TEST_TOKEN }}
+          GUARD_STORAGE_URL: ${{ secrets.GUARD_STORAGE_URL }}
+      - uses: actions/upload-artifact@v4        # the merged HTML report, to open locally
+        if: always()
+        with: { name: guard-report, path: e2e-playwright/playwright-report/ }
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .guard/durations.json
+          key: guard-durations-${{ github.run_id }}

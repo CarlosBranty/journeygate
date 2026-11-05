@@ -1,0 +1,57 @@
+{
+  "type": "doc",
+  "version": 1,
+  "content": [
+    { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "guard: red" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "passed 40, flaky 2, failed 3 (regressions 1, pre-existing 1), skipped 0" }
+    ] },
+    { "type": "heading", "attrs": { "level": 4 }, "content": [{ "type": "text", "text": "Regressions" }] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "checkout.customer-card — " },
+        { "type": "text", "text": "SHOP-211", "marks": [{ "type": "link", "attrs": { "href": "https://acme.atlassian.net/browse/SHOP-211" } }] },
+        { "type": "text", "text": " — " },
+        { "type": "text", "text": "tests/journeys/checkout/customer-card.spec.ts:21", "marks": [{ "type": "code" }] }
+      ] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 4 }, "content": [{ "type": "text", "text": "Already broken on main" }] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "Catalog > badge — " },
+        { "type": "text", "text": "SHOP-150", "marks": [{ "type": "link", "attrs": { "href": "https://acme.atlassian.net/browse/SHOP-150" } }] },
+        { "type": "text", "text": " — " },
+        { "type": "text", "text": "tests/journeys/catalog/stock.spec.ts:9", "marks": [{ "type": "code" }] }
+      ] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 4 }, "content": [{ "type": "text", "text": "Unconfirmed or flaky" }] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "Search > unconfirmed — unconfirmed — " },
+        { "type": "text", "text": "tests/x.spec.ts:3", "marks": [{ "type": "code" }] }
+      ] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "Cart > flaky — flaky — " },
+        { "type": "text", "text": "tests/x.spec.ts:3", "marks": [{ "type": "code" }] }
+      ] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 4 }, "content": [{ "type": "text", "text": "Modified journeys" }] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "journeys modified, but the ticket is not labeled flow-change" }
+      ] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "text": "checkout.customer-card: assertions 5 -> 3" }
+      ] }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Links", "marks": [{ "type": "strong" }] },
+      { "type": "text", "text": " " },
+      { "type": "text", "text": "Report", "marks": [{ "type": "link", "attrs": { "href": "https://minio.acme.test/report/index.html" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "Pipeline", "marks": [{ "type": "link", "attrs": { "href": "https://github.com/acme/shop/actions/runs/1" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "PR", "marks": [{ "type": "link", "attrs": { "href": "https://github.com/acme/shop/pull/12" } }] }
+    ] }
+  ]
+}

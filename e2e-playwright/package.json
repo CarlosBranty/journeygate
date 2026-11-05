@@ -1,0 +1,26 @@
+{
+  "name": "e2e-playwright",
+  "private": true,
+  "type": "module",
+  "description": "Playwright journey suite driven by guard through the runner-env contract.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:list": "playwright test --list",
+    "test:unit": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "catalog:lint": "node scripts/catalog-lint.ts --target ../target.toml"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.12.0",
+    "eslint-plugin-playwright": "2.12.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "4.1.12"
+  }
+}

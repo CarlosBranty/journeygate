@@ -1,0 +1,44 @@
+# Agent lane override: gives `guard serve` a Docker engine so it can start
+# the Linux sandbox containers (docs/contracts/sandbox.md). Opt-in, and only
+# together with the "agents" profile (the gateway):
+#
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.agents.yml \
+#     --profile agents up -d --wait
+#
+# SECURITY: mounting /var/run/docker.sock gives the guard container full
+# control of the host's Docker engine, which is root on the host: it can start
+# privileged containers and bind-mount any host path. Anyone who compromises
+# guard serve (a webhook bug, a leaked GUARD_SERVER_TOKEN, a malicious
+# dependency) owns the host. Prefer a dedicated VM or host for this, ideally
+# with rootless Docker or gVisor (GUARD_SANDBOX_RUNTIME=runsc); never use it on
+# a shared machine. The sandboxes themselves are hardened (read-only, no
+# capabilities, internal network), the orchestrator is not.
+services:
+  guard:
+    # The socket is root:docker on the host; the guard user (uid 10001) joins
+    # that group by numeric id (`getent group docker` on the host).
+    group_add:
+      - "${DOCKER_GID:?set DOCKER_GID in deploy/.env (getent group docker | cut -d: -f3)}"
+    environment:
+      # The orchestrator mints and revokes gateway virtual keys with it
+      # ([gateway].master_key_env in agents.toml).
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in deploy/.env}
+      # agents.toml [gateway].url is what a sandbox uses (http://litellm:4000,
+      # resolved to its egress forwarder); the orchestrator talks to it here.
+      GUARD_GATEWAY_ADMIN_URL: http://litellm:4000
+      # Forwarders start on the gateway network, where only litellm lives.
+      GUARD_SANDBOX_EGRESS_NETWORK: guard-gateway
+      # Sandbox bind mounts are resolved by the host engine, so the work dir
+      # must have the same absolute path on the host and in this container.
+      GUARD_AGENT_WORK_DIR: ${GUARD_AGENT_WORK_DIR:?set GUARD_AGENT_WORK_DIR in deploy/.env (absolute host path)}
+      GUARD_SANDBOX_RUNTIME:
+      GUARD_AGENTS_TOML:
+      GUARD_AGENT_KEEP_WORK:
+      GUARD_REPO:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${GUARD_AGENT_WORK_DIR}:${GUARD_AGENT_WORK_DIR}
+    networks: [default, gateway]
+    depends_on:
+      litellm:
+        condition: service_healthy

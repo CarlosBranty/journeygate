@@ -1,0 +1,13 @@
+version = 1
+
+[app]
+name = "php-fixture"
+languages = ["php"]
+base_url = "http://localhost:8000"
+
+[areas.models]
+description = "Eloquent models"
+paths = ["app/Models/**"]
+
+[hard_rules]
+human_only_paths = ["database/migrations/**"]

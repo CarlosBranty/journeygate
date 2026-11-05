@@ -1,0 +1,5 @@
+{"seq":1,"ts":"2026-11-01T10:00:01Z","kind":"model_call","model":"anthropic/claude-sonnet-4-5","usage":{"input_tokens":12000,"output_tokens":400,"cached_input_tokens":0,"cache_creation_input_tokens":11800},"cost_usd":0.0512}
+{"seq":2,"ts":"2026-11-01T10:00:03Z","kind":"tool_call","tool":"guard_history","ok":true,"duration_ms":180}
+{"seq":3,"ts":"2026-11-01T10:00:09Z","kind":"model_call","model":"anthropic/claude-sonnet-4-5","usage":{"input_tokens":13100,"output_tokens":620,"cached_input_tokens":11800,"cache_creation_input_tokens":0},"cost_usd":0.0141}
+{"seq":4,"ts":"2026-11-01T10:00:10Z","kind":"message","text":"The badge condition uses inventory.available; switching to product.stock."}
+{"seq":5,"ts":"2026-11-01T10:01:40Z","kind":"error","message":"guard_test exited 1: 1 failed (SHOP-101 badge)"}

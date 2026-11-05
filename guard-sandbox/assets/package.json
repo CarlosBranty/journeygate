@@ -1,0 +1,19 @@
+{
+  "name": "guard-sandbox-assets",
+  "private": true,
+  "type": "module",
+  "description": "Node helpers the guard-sandbox harness invokes: the AST test-quality checker and the egress forwarder.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test \"*.test.mjs\""
+  },
+  "dependencies": {
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

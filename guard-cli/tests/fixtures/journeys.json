@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "journeys": [
+    {
+      "id": "checkout.customer-card",
+      "area": "checkout",
+      "title": "Customer pays by card",
+      "impact_question": "This diff can change checkout.",
+      "paths": [
+        "web/src/checkout/**"
+      ],
+      "smoke": true,
+      "quarantined": false
+    },
+    {
+      "id": "billing.invoice-pdf",
+      "area": "billing",
+      "title": "Invoice PDF",
+      "impact_question": "This diff can change invoices.",
+      "paths": [
+        "services/billing/**"
+      ],
+      "smoke": false,
+      "quarantined": false
+    },
+    {
+      "id": "billing.refund",
+      "area": "billing",
+      "title": "Refund",
+      "impact_question": "This diff can change refunds.",
+      "paths": [
+        "services/billing/**"
+      ],
+      "smoke": false,
+      "quarantined": true
+    }
+  ]
+}

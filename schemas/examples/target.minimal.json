@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "app": {
+    "name": "demo-shop",
+    "base_url": "http://localhost:3000"
+  },
+  "areas": {
+    "checkout": {
+      "description": "Cart, payment and order confirmation",
+      "paths": ["examples/demo-shop/src/**"]
+    }
+  }
+}

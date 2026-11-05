@@ -1,0 +1,10 @@
+version = 1
+
+[app]
+name = "rust-fixture"
+languages = ["rust"]
+base_url = "http://localhost:4000"
+
+[areas.core]
+description = "Domain core"
+paths = ["core/**"]

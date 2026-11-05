@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/journeys.schema.json",
+  "version": 1,
+  "journeys": [
+    {
+      "id": "checkout.customer-card",
+      "area": "checkout",
+      "title": "Customer pays by card and gets one confirmed order",
+      "impact_question": "This diff can change how a customer pays by card.",
+      "paths": ["web/src/checkout/**", "services/payments/**"],
+      "smoke": true,
+      "quarantined": false
+    },
+    {
+      "id": "billing.invoice-pdf",
+      "area": "billing",
+      "title": "Invoice PDF is issued after a paid order",
+      "impact_question": "This diff can change how an invoice is generated.",
+      "paths": ["services/billing/**"],
+      "smoke": false,
+      "quarantined": true
+    }
+  ]
+}

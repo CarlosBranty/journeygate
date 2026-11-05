@@ -1,0 +1,17 @@
+{
+  "timestamp": 1761825600000,
+  "webhookEvent": "jira:issue_created",
+  "issue_event_type_name": "issue_created",
+  "user": { "accountId": "557058:human-reporter", "displayName": "Ana QA" },
+  "issue": {
+    "id": "10007",
+    "key": "SHOP-7",
+    "fields": {
+      "summary": "Show 'Sold out' badge on products without stock",
+      "issuetype": { "name": "Story" },
+      "labels": ["catalog"],
+      "description": "Products with zero stock look buyable.\n\nh3. Acceptance criteria\n* A product with 0 available units shows 'Sold out'\n* The add-to-cart button is disabled",
+      "customfield_10050": "- A product with 0 available units shows 'Sold out'\n- The add-to-cart button is disabled\n"
+    }
+  }
+}

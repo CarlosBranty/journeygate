@@ -1,0 +1,17 @@
+{
+  "info": {
+    "model_stats": {"instance_cost": 5.01, "api_calls": 1},
+    "exit_status": "LimitsExceeded",
+    "submission": ""
+  },
+  "messages": [
+    {"role": "system", "content": "sys"},
+    {"role": "user", "content": "task"},
+    {
+      "role": "assistant",
+      "content": "thinking",
+      "extra": {"actions": [], "cost": 5.01, "timestamp": 1793527200.0, "response": {"usage": {"prompt_tokens": 10, "completion_tokens": 1}}}
+    }
+  ],
+  "trajectory_format": "mini-swe-agent-1.1"
+}

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "guard": {
+      "args": [
+        "mcp"
+      ],
+      "command": "guard",
+      "tools": [
+        "*"
+      ],
+      "type": "local"
+    }
+  }
+}

@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flujo Guard E2E</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: sticky control bar; a three-lane grid canvas with an SVG wire layer; an inspector beside it (a bottom sheet when narrow). Single dark theme by choice: the flow is drawn as white light. */
+  :root {
+    --bg: #0a0c0f;
+    --surface: #12151a;
+    --surface-2: #171b21;
+    --code: #0d1014;
+    --line: rgba(255, 255, 255, 0.07);
+    --line-2: rgba(255, 255, 255, 0.14);
+    --line-3: rgba(255, 255, 255, 0.30);
+    --text: #e8eaed;
+    --text-2: #a2a8b0;
+    --text-3: #6d737c;
+    --err: 236, 132, 132;
+    --warn: 224, 196, 140;
+    --ok: 156, 208, 176;
+    --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --radius: 14px;
+    --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+    --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+    color-scheme: dark;
+  }
+
+  html, body { background: var(--bg); }
+
+  body {
+    margin: 0;
+    color: var(--text);
+    font: 14px/1.5 var(--font-sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 22px 22px;
+    padding-left: var(--gutter-l);
+    padding-right: var(--gutter-r);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 30;
+    background: var(--bg);
+  }
+
+  /* Control bar */
+  .bar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    margin-left: calc(-1 * var(--gutter-l));
+    margin-right: calc(-1 * var(--gutter-r));
+    padding: 14px var(--gutter-r) 14px var(--gutter-l);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    background: rgba(10, 12, 15, 0.86);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .brand h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .tag {
+    font: 500 11px/1 var(--font-mono);
+    color: var(--text-2);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 5px 9px;
+  }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+  .seg {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .seg button {
+    font: 500 12.5px/1 var(--font-sans);
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    padding: 8px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: color .25s ease, background-color .25s ease, box-shadow .25s ease;
+  }
+  .seg button:hover { color: var(--text); }
+  .seg button[aria-pressed="true"] {
+    color: var(--text);
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--line-3);
+  }
+
+  .tgl {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    padding: 7px 12px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+  }
+  .tgl input {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    width: 26px;
+    height: 15px;
+    border-radius: 999px;
+    background: var(--line-2);
+    position: relative;
+    cursor: pointer;
+    transition: background-color .25s ease;
+  }
+  .tgl input::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--text-2);
+    transition: transform .25s ease, background-color .25s ease;
+  }
+  .tgl input:checked::after { transform: translateX(11px); background: #ffffff; }
+  #sim-reg:checked { background: rgba(var(--err), 0.38); }
+  #sim-flaky:checked { background: rgba(var(--warn), 0.34); }
+
+  .play {
+    font: 500 12.5px/1 var(--font-sans);
+    color: var(--bg);
+    background: #f1f2f4;
+    border: 0;
+    padding: 9px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color .25s ease, color .25s ease, box-shadow .25s ease;
+  }
+  .play:hover { background: #ffffff; }
+  .play[aria-pressed="true"] { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px var(--line-3); }
+
+  .seg button:focus-visible,
+  .tgl input:focus-visible,
+  .play:focus-visible,
+  .ins-toggle:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding-block: 14px 2px;
+    font: 400 11.5px/1.4 var(--font-mono);
+    color: var(--text-3);
+    max-width: 1320px;
+    margin-inline: auto;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend i { display: inline-block; width: 22px; height: 0; border-top: 1.5px solid; }
+  .l-flow { border-color: rgba(255, 255, 255, 0.75); }
+  .l-err { border-color: rgba(var(--err), 0.8); }
+  .l-warn { border-color: rgba(var(--warn), 0.75); }
+  .l-sat { border-top-style: dotted !important; border-color: rgba(255, 255, 255, 0.45); }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+    align-items: start;
+    max-width: 1320px;
+    margin-inline: auto;
+    padding-block: 6px 40px;
+  }
+  .canvas-wrap { overflow-x: auto; }
+
+  .canvas {
+    position: relative;
+    width: max-content;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 250px);
+    column-gap: 48px;
+    row-gap: 50px;
+    padding: 28px 44px 76px;
+  }
+
+  #wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  /* Nodes */
+  .node {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 250px;
+    justify-self: center;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px 13px;
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity .45s ease, border-color .45s ease, box-shadow .45s ease, background .45s ease;
+  }
+  .node:hover { border-color: var(--line-3); }
+  .node:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.75); outline-offset: 3px; }
+  .node.wide { width: 620px; }
+  .node.sat { width: 220px; background: transparent; border-style: dashed; }
+
+  .stage {
+    font: 500 10px/1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .title { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; }
+  .sub { font-size: 12px; line-height: 1.4; color: var(--text-2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    font: 500 10.5px/1 var(--font-mono);
+    color: var(--text-2);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 5px 8px;
+  }
+
+  .node.is-dim { opacity: 0.26; }
+  .node.is-active {
+    border-color: rgba(255, 255, 255, 0.26);
+    box-shadow: 0 14px 34px -22px rgba(255, 255, 255, 0.38);
+  }
+  .node.is-selected {
+    border-color: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 30px -8px rgba(255, 255, 255, 0.28);
+  }
+  .node.is-current {
+    border-color: rgba(255, 255, 255, 0.72);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 0 24px -10px rgba(255, 255, 255, 0.32); }
+    50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.06), 0 0 36px -6px rgba(255, 255, 255, 0.42); }
+  }
+  .node[data-tone="err"].is-active {
+    border-color: rgba(var(--err), 0.55);
+    background: linear-gradient(180deg, rgba(var(--err), 0.08), var(--surface));
+    box-shadow: 0 0 32px -10px rgba(var(--err), 0.42);
+  }
+  .node[data-tone="warn"].is-active {
+    border-color: rgba(var(--warn), 0.5);
+    background: linear-gradient(180deg, rgba(var(--warn), 0.07), var(--surface));
+    box-shadow: 0 0 30px -12px rgba(var(--warn), 0.36);
+  }
+  .node[data-tone="ok"].is-active {
+    border-color: rgba(var(--ok), 0.42);
+    box-shadow: 0 0 30px -12px rgba(var(--ok), 0.3);
+  }
+
+  /* Wires */
+  .wire-base { fill: none; stroke: rgba(255, 255, 255, 0.075); stroke-width: 1.5; }
+  .wire-base.sat { stroke-dasharray: 2 5; }
+  .wire {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.36);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 7;
+    animation: flow 1.1s linear infinite;
+  }
+  .wire.glow { stroke: rgba(255, 255, 255, 0.07); stroke-width: 6; stroke-dasharray: none; animation: none; }
+  .wire.err { stroke: rgba(var(--err), 0.62); }
+  .wire.glow.err { stroke: rgba(var(--err), 0.1); }
+  .wire.warn { stroke: rgba(var(--warn), 0.58); }
+  .wire.glow.warn { stroke: rgba(var(--warn), 0.08); }
+  .wire.sat { stroke: rgba(255, 255, 255, 0.24); stroke-dasharray: 1.5 5; animation-duration: 2.8s; }
+  @keyframes flow { to { stroke-dashoffset: -24; } }
+
+  .dot { fill: #ffffff; }
+  .dot.err { fill: rgb(255, 214, 214); }
+  .dot.warn { fill: rgb(255, 238, 206); }
+  .comet { fill: #ffffff; }
+  .comet.err { fill: rgb(255, 220, 220); }
+  .comet.warn { fill: rgb(255, 240, 210); }
+  .wire-label { font: 500 10.5px var(--font-mono); fill: var(--text-3); letter-spacing: 0.04em; }
+
+  /* Inspector */
+  .inspector {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 84px);
+    box-sizing: border-box;
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+    padding: 18px 18px 20px;
+    background: rgba(18, 21, 26, 0.94);
+    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    transition: border-color .4s ease;
+  }
+  .inspector[data-tone="err"] { border-color: rgba(var(--err), 0.38); }
+  .inspector[data-tone="warn"] { border-color: rgba(var(--warn), 0.34); }
+  .inspector[data-tone="ok"] { border-color: rgba(var(--ok), 0.3); }
+
+  .ins-bar { display: none; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .ins-label { font: 500 11px/1 var(--font-mono); color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .ins-toggle {
+    font: 500 12px/1 var(--font-sans);
+    color: var(--text-2);
+    background: transparent;
+    border: 1px solid var(--line-2);
+    border-radius: 9px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  .ins-kicker { font: 500 10.5px/1.3 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+  .ins-title { margin: 6px 0 2px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .ins-sub { margin: 0 0 12px; font-size: 13px; color: var(--text-2); }
+  .ins-body { margin: 0 0 12px; font-size: 13.5px; line-height: 1.55; max-width: 65ch; }
+  .ins-list { margin: 0 0 12px; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; color: var(--text-2); }
+  .ins-code {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    font: 12px/1.65 var(--font-mono);
+    color: var(--text);
+    background: var(--code);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ins-note {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+  }
+  .ins-note.err { border-color: rgba(var(--err), 0.34); }
+  .ins-note.warn { border-color: rgba(var(--warn), 0.32); }
+  .ins-hint { margin: 4px 0 0; font-size: 12px; color: var(--text-3); }
+  .ins-ref { margin-top: 4px; font: 500 11px/1.3 var(--font-mono); color: var(--text-3); }
+
+  .foot {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding-block: 0 28px;
+    font: 400 11.5px/1.5 var(--font-mono);
+    color: var(--text-3);
+  }
+
+  @media (max-width: 1339px) {
+    .layout { grid-template-columns: minmax(0, 1fr); padding-bottom: 46vh; }
+    .inspector {
+      position: fixed;
+      top: auto;
+      left: max(12px, env(safe-area-inset-left, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      max-height: 40vh;
+      z-index: 25;
+      box-shadow: 0 -24px 48px -24px rgba(0, 0, 0, 0.85);
+    }
+    .ins-bar { display: flex; }
+    .inspector.is-collapsed .ins-content { display: none; }
+    .inspector.is-collapsed .ins-bar { margin-bottom: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wire { animation: none; }
+    .node.is-current { animation: none; }
+    .node, .seg button, .tgl input, .tgl input::after, .play, .inspector { transition: none; }
+  }
+</style>
+
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <h1>Flujo Guard E2E</h1>
+    <span class="tag">Rust · Jev 1.13 · Playwright</span>
+  </div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Recorrido">
+      <button type="button" data-mode="full" aria-pressed="true">Completo</button>
+      <button type="button" data-mode="agent" aria-pressed="false">Carril agente</button>
+      <button type="button" data-mode="human" aria-pressed="false">Carril humano</button>
+      <button type="button" data-mode="direct" aria-pressed="false">Entrada directa</button>
+    </div>
+    <label class="tgl" for="sim-reg"><input type="checkbox" id="sim-reg"><span>Simular regresión</span></label>
+    <label class="tgl" for="sim-flaky"><input type="checkbox" id="sim-flaky"><span>Simular inestable</span></label>
+    <button type="button" class="play" id="play" aria-pressed="false">Recorrer paso a paso</button>
+  </div>
+</header>
+
+<div class="legend" aria-hidden="true">
+  <span><i class="l-flow"></i>Flujo activo</span>
+  <span><i class="l-err"></i>Regresión</span>
+  <span><i class="l-warn"></i>Inestable</span>
+  <span><i class="l-sat"></i>Infraestructura y contexto</span>
+</div>
+
+<main class="layout">
+  <div class="canvas-wrap">
+    <div class="canvas" id="canvas">
+      <svg id="wires" aria-hidden="true">
+        <defs>
+          <filter id="dotglow" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="2.2" result="b"></feGaussianBlur>
+            <feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+          </filter>
+          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3"></feGaussianBlur>
+          </filter>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="rgba(255,255,255,0.5)"></path>
+          </marker>
+          <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="rgba(236,132,132,0.75)"></path>
+          </marker>
+          <marker id="arrow-warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 0L10 5L0 10z" fill="rgba(224,196,140,0.7)"></path>
+          </marker>
+        </defs>
+        <g id="g-base"></g>
+        <g id="g-wire"></g>
+        <g id="g-dots"></g>
+      </svg>
+    </div>
+  </div>
+
+  <aside class="inspector" id="inspector" aria-live="polite">
+    <div class="ins-bar">
+      <span class="ins-label">Detalle</span>
+      <button type="button" class="ins-toggle" id="ins-toggle" aria-expanded="true">Minimizar</button>
+    </div>
+    <div class="ins-content" id="ins-content"></div>
+  </aside>
+</main>
+
+<p class="foot">Basado en la Propuesta de Arquitectura de la Plataforma E2E Agéntica. Cada paso indica la sección del documento que lo detalla.</p>
+
+<script>
+(() => {
+  const NODES = {
+    jira: {
+      stage: '01 · Origen', title: 'Jira', sub: 'Ticket nuevo o cambio de estado',
+      body: 'Todo requerimiento nace en Jira. Un webhook firmado llega al orquestador con la descripción y los criterios de aceptación del ticket.',
+      bullets: ['Entrada: POST /webhooks/jira', 'El triaje solo se aplica a tickets: decide quién desarrolla', 'Los tickets que cambian un flujo existente reciben la etiqueta flow-change'],
+      ref: 'Secciones 1 y 14'
+    },
+    ingest: {
+      stage: '01 · Ingesta', title: 'Orquestador Rust', sub: 'Axum · análisis de impacto',
+      body: 'Rust identifica los módulos que menciona el ticket y calcula con tree-sitter cuántos otros módulos dependen de ellos.',
+      bullets: ['Un plugin de tree-sitter por lenguaje; sin plugin, usa los globs de target.toml', 'El fan-out llega a Jev como bucket (aislado, moderado o amplio), nunca como número', 'Las rutas sensibles de target.toml quedan marcadas como regla dura', 'Con cada PR participa por un costado: le da al guard el contexto del ticket y recibe el resultado para Jira'],
+      ref: 'Secciones 1, 2 y 7'
+    },
+    jev: {
+      stage: '02 · Triaje', title: 'Jev AI · jev-1.13.0', sub: '7 preguntas en una sola pasada',
+      body: 'Un único POST /v1/systemone evalúa todas las preguntas sobre el mismo state.',
+      bullets: ['Choice: área del sistema y tipo de requerimiento', 'Score: riesgo de 0 a 4 (los niveles empiezan en 0)', 'Noul: criterios claros, pagos o seguridad, apto para agente y cambio de un flujo existente', 'Si Jev no responde, el ticket va al carril humano'],
+      ref: 'Sección 2'
+    },
+    gate: {
+      stage: '02 · Triaje', title: 'Gatekeeper determinista', sub: 'Reglas duras primero',
+      body: 'Rust decide el carril. Las reglas sobre hechos van primero y Jev no puede anularlas; después se aplican los umbrales calibrados.',
+      bullets: ['Carril humano si toca rutas sensibles, migraciones o un fan-out amplio', 'Carril agente solo con apto > 0.80, riesgo < 1.0, pagos < 0.15, confianza > 0.75 y cambio de flujo < 0.20', 'En Shadow Mode decide, registra y deriva todo al humano'],
+      ref: 'Sección 2'
+    },
+    qa: {
+      stage: '03A · Carril agente', title: 'Agente QA', sub: 'Escribe el spec del ticket',
+      body: 'Un contenedor nuevo escribe tests/features/KEY.spec.ts con Playwright MCP contra el entorno preview. Es la única ruta en la que puede escribir.',
+      bullets: ['Sigue AGENTS.md: Page Objects, fixtures, tags y datos por seed', 'Tag obligatorio @ticket:KEY'],
+      ref: 'Secciones 4 y 13'
+    },
+    seal: {
+      stage: '03A · Carril agente', title: 'Red-first y sellado', sub: 'El test debe fallar antes del cambio',
+      body: 'El orquestador corre el spec contra el commit base: si pasa, no prueba nada nuevo. Después lo sella con un hash guardado fuera del sandbox.',
+      bullets: ['Chequeos AST: un expect real por test, sin skip, only ni waitForTimeout', 'La señal de Jev sobre la calidad del test es secundaria'],
+      ref: 'Sección 4'
+    },
+    coder: {
+      stage: '03A · Carril agente', title: 'Agente Coder', sub: 'Implementa hasta que el spec pase',
+      body: 'Otro contenedor recibe el spec sellado en solo lectura y solo puede escribir código de la app. No ve los journeys de regresión.',
+      bullets: ['Runtimes: Claude Code, Codex, Copilot CLI o mini-swe-agent', 'Todo el tráfico a modelos pasa por el gateway', 'Máximo 3 intentos por ticket'],
+      ref: 'Secciones 4 y 16'
+    },
+    dev: {
+      stage: '03B · Carril humano', title: 'Dev', sub: 'Ticket con informe de impacto',
+      body: 'El ticket llega asignado con los archivos sugeridos y los journeys que probablemente haya que actualizar.',
+      bullets: ['Llega por reglas duras, por umbrales o porque el ticket cambia un flujo existente'],
+      ref: 'Secciones 2 y 14'
+    },
+    local: {
+      stage: '03B · Carril humano', title: 'Prueba local', sub: 'El mismo motor que el guard',
+      body: 'El dev corre los journeys afectados antes del PR, con o sin un asistente de IA conectado al servidor MCP.',
+      cmds: ['guard up', 'guard test', 'guard test --headed --journey checkout.customer-card', 'guard test --all --docker'],
+      ref: 'Secciones 8 y 17'
+    },
+    devpr: {
+      stage: '03B · Carril humano', title: 'PR del dev', sub: 'Con el journey actualizado si cambia un flujo',
+      body: 'Si el cambio de flujo es intencional, el journey se actualiza en el mismo PR y lo aprueba QA vía CODEOWNERS.',
+      bullets: ['El guard marca menos aserciones, un skip nuevo o un journey modificado sin flow-change'],
+      ref: 'Sección 14'
+    },
+    direct: {
+      stage: '04 · Entrada directa', title: 'PR o pedido de QA', sub: 'Hotfix, Dependabot o release candidate',
+      body: 'Un PR ya está desarrollado: entra directo al guard desde el pipeline, sin pasar por el triaje. Si trae clave de Jira, el orquestador aporta el contexto del ticket y recibe el resultado.',
+      bullets: ['Lo dispara cada PR en GitHub o GitLab, no el webhook de Jira', 'Un PR sin ticket también pasa la suite completa: una dependencia actualizada rompe cosas', 'Un pedido de QA antes de producción corre el mismo pipeline de forma manual'],
+      ref: 'Sección 12'
+    },
+    skills: {
+      stage: 'Infraestructura', title: 'Skills y AGENTS.md', sub: 'Una fuente para todos los asistentes', sat: true,
+      body: 'guard agents sync renderiza las mismas convenciones para cada runtime y para el asistente del dev. Las reglas duras viven en el sandbox, no en el prompt.',
+      ref: 'Sección 16'
+    },
+    gateway: {
+      stage: 'Infraestructura', title: 'Gateway de modelos', sub: 'LiteLLM · llaves virtuales', sat: true,
+      body: 'Cada tarea recibe una llave con presupuesto, modelos permitidos y vencimiento. Las llaves reales de los proveedores nunca entran al sandbox.',
+      ref: 'Sección 16'
+    },
+    guard: {
+      stage: '04 · Guard remoto', title: 'Guard remoto en CI', sub: 'Suite completa · GitHub Actions o GitLab CI',
+      chips: ['plan', 'shards por duración', 'finalize'],
+      body: 'Corre todos los journeys activos más el smoke. Cada shard levanta su propia app y su base de datos.',
+      bullets: ['Primera pasada liviana: solo screenshot al fallar', 'Los shards se reparten por duración histórica', 'Jev ya no decide qué se ejecuta'],
+      ref: 'Secciones 9 y 12'
+    },
+    confirm: {
+      stage: '04 · Determinismo', title: 'Confirmación del fallo', sub: '3 intentos y corrida contra la base',
+      chips: ['reintentos', 'baseline'],
+      body: 'Un fallo solo es regresión si falla los 3 intentos y pasa en el commit base.',
+      bullets: ['Video y trace solo en el primer reintento de un test que falló', 'Imagen de Docker, reloj, zona horaria y semilla fijos'],
+      ref: 'Sección 10'
+    },
+    flaky: {
+      stage: '04 · Determinismo', title: 'Inestable', sub: 'Pasa en un reintento', tone: 'warn',
+      body: 'Queda en cuarentena y no bloquea, salvo que sea smoke o un journey afectado por el diff.',
+      bullets: ['Ticket automático al dueño del journey', 'Aparece en la vista Inestables del tablero'],
+      ref: 'Secciones 6 y 10'
+    },
+    green: {
+      stage: '05 · Salida', title: 'Verde', sub: 'Merge queue · staging o producción', tone: 'ok',
+      body: 'El check obligatorio pasa, la merge queue revalida contra el main actual y el cambio sigue a staging o producción.',
+      bullets: ['Resumen en el PR o MR y en Jira'],
+      ref: 'Secciones 5 y 12'
+    },
+    red: {
+      stage: '05 · Salida', title: 'Regresión', sub: 'Bloqueo y evidencia en Jira', tone: 'err',
+      body: 'El merge se bloquea. Se crea o actualiza un Bug en Jira con el screenshot adjunto y links al trace y al video.',
+      bullets: ['Vuelve al Agente Coder como entrada del siguiente intento, o al dev o autor del PR con la línea exacta', 'guard repro reproduce el fallo en local con la misma imagen y semilla'],
+      ref: 'Sección 11'
+    }
+  };
+
+  const POS = {
+    jira: [1, 2],
+    ingest: [2, 2],
+    jev: [3, 2],
+    gate: [4, 2],
+    qa: [5, 1], skills: [5, 2], dev: [5, 3],
+    seal: [6, 1], gateway: [6, 2], local: [6, 3],
+    coder: [7, 1], direct: [7, 2], devpr: [7, 3],
+    guard: [8, '1 / -1'],
+    confirm: [9, 2], flaky: [9, 3],
+    green: [10, 1], red: [10, 3]
+  };
+
+  const EDGES = [
+    { id: 'jira-ingest', from: 'jira', to: 'ingest', route: 'v' },
+    { id: 'ingest-jev', from: 'ingest', to: 'jev', route: 'v' },
+    { id: 'jev-gate', from: 'jev', to: 'gate', route: 'v' },
+    { id: 'gate-qa', from: 'gate', to: 'qa', route: 'v' },
+    { id: 'gate-dev', from: 'gate', to: 'dev', route: 'v' },
+    { id: 'qa-seal', from: 'qa', to: 'seal', route: 'v' },
+    { id: 'seal-coder', from: 'seal', to: 'coder', route: 'v' },
+    { id: 'dev-local', from: 'dev', to: 'local', route: 'v' },
+    { id: 'local-devpr', from: 'local', to: 'devpr', route: 'v' },
+    { id: 'coder-guard', from: 'coder', to: 'guard', route: 'v', toDx: -170 },
+    { id: 'direct-guard', from: 'direct', to: 'guard', route: 'v' },
+    { id: 'devpr-guard', from: 'devpr', to: 'guard', route: 'v', toDx: 170 },
+    { id: 'guard-confirm', from: 'guard', to: 'confirm', route: 'v' },
+    { id: 'confirm-flaky', from: 'confirm', to: 'flaky', route: 'right', tone: 'warn' },
+    { id: 'confirm-green', from: 'confirm', to: 'green', route: 'v' },
+    { id: 'confirm-red', from: 'confirm', to: 'red', route: 'v', tone: 'err' },
+    { id: 'red-coder', from: 'red', to: 'coder', route: 'fbLeft', tone: 'err', feedback: true },
+    { id: 'red-dev', from: 'red', to: 'dev', route: 'fbRight', tone: 'err', feedback: true },
+    { id: 'skills-qa', from: 'skills', to: 'qa', route: 'left', sat: true },
+    { id: 'skills-dev', from: 'skills', to: 'dev', route: 'right', sat: true },
+    { id: 'gateway-coder', from: 'gateway', to: 'coder', route: 'left', sat: true },
+    { id: 'guard-ingest', from: 'guard', to: 'ingest', route: 'ctx', sat: true, side: true }
+  ];
+
+  const LANE = {
+    full: ['jira', 'ingest', 'jev', 'gate', 'qa', 'seal', 'coder', 'dev', 'local', 'devpr', 'direct', 'guard', 'confirm', 'skills', 'gateway'],
+    agent: ['jira', 'ingest', 'jev', 'gate', 'qa', 'seal', 'coder', 'guard', 'confirm', 'skills', 'gateway'],
+    human: ['jira', 'ingest', 'jev', 'gate', 'dev', 'local', 'devpr', 'guard', 'confirm', 'skills'],
+    direct: ['direct', 'guard', 'confirm', 'ingest']
+  };
+
+  const STEPS = {
+    full: ['jira', 'ingest', 'jev', 'gate', 'qa', 'seal', 'coder', 'dev', 'local', 'devpr', 'direct', 'guard', 'confirm'],
+    agent: ['jira', 'ingest', 'jev', 'gate', 'qa', 'seal', 'coder', 'guard', 'confirm'],
+    human: ['jira', 'ingest', 'jev', 'gate', 'dev', 'local', 'devpr', 'guard', 'confirm'],
+    direct: ['direct', 'guard', 'confirm']
+  };
+
+  const MODES = {
+    full: { title: 'Flujo completo', text: 'Los requerimientos nacen en Jira y pasan por el triaje. Todo PR, venga de un carril o entre directo, converge en el guard remoto, que corre la suite completa antes de cualquier merge.' },
+    agent: { title: 'Carril agente', text: 'Para tickets simples y de bajo riesgo: el Agente QA escribe el test, se sella, y el Agente Coder implementa sin poder tocarlo.' },
+    human: { title: 'Carril humano', text: 'Arquitectura, pagos, cambios de flujo o zona gris: un dev toma el ticket ya clasificado y prueba en local con el mismo motor que el guard.' },
+    direct: { title: 'Entrada directa', text: 'Un PR ya desarrollado, o un pedido de QA antes de producción, entra directo al guard remoto, sin triaje. El orquestador participa por un costado: aporta el contexto del ticket y recibe el resultado para Jira.' }
+  };
+
+  const SIM = {
+    reg: 'Simulación: un journey falla los 3 intentos y pasa en la base. El merge se bloquea y la evidencia vuelve al carril de origen.',
+    flaky: 'Simulación: un test falla y pasa en un reintento. Queda en cuarentena y no bloquea.'
+  };
+
+  const STEP_MS = 2300;
+  const COMET_MS = 900;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const state = {
+    mode: 'full', reg: false, flaky: false, selected: null,
+    playing: false, steps: [], stepIndex: -1, visited: new Set(), feedbackShown: new Set(),
+    timer: null, comet: null
+  };
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const canvas = document.getElementById('canvas');
+  const svg = document.getElementById('wires');
+  const gBase = document.getElementById('g-base');
+  const gWire = document.getElementById('g-wire');
+  const gDots = document.getElementById('g-dots');
+  const inspector = document.getElementById('inspector');
+  const insContent = document.getElementById('ins-content');
+  const insToggle = document.getElementById('ins-toggle');
+  const playBtn = document.getElementById('play');
+  const regInput = document.getElementById('sim-reg');
+  const flakyInput = document.getElementById('sim-flaky');
+
+  const paths = new Map();
+  let particles = [];
+  let cometEl = null;
+
+  // Nodes
+  for (const [id, n] of Object.entries(NODES)) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.id = 'node-' + id;
+    el.className = 'node' + (n.sat ? ' sat' : '') + (id === 'guard' ? ' wide' : '');
+    if (n.tone) el.dataset.tone = n.tone;
+    el.style.gridRow = String(POS[id][0]);
+    el.style.gridColumn = String(POS[id][1]);
+    const chips = n.chips ? '<span class="chips">' + n.chips.map(c => '<span class="chip">' + c + '</span>').join('') + '</span>' : '';
+    el.innerHTML = '<span class="stage">' + n.stage + '</span><span class="title">' + n.title + '</span><span class="sub">' + n.sub + '</span>' + chips;
+    el.addEventListener('click', () => select(id));
+    canvas.appendChild(el);
+  }
+
+  // Graph state
+  function activeNodes() {
+    if (state.playing) {
+      const s = new Set(state.visited);
+      if (s.has('qa') || s.has('dev')) s.add('skills');
+      if (s.has('coder') && state.mode !== 'human') s.add('gateway');
+      if (s.has('guard')) s.add('ingest');
+      return s;
+    }
+    const s = new Set(LANE[state.mode]);
+    if (state.flaky) s.add('flaky');
+    s.add(state.reg ? 'red' : 'green');
+    return s;
+  }
+
+  function edgeAllowed(e) {
+    if (e.to === 'green') return !state.reg;
+    if (e.to === 'red' || e.feedback) return state.reg;
+    if (e.to === 'flaky') return state.flaky;
+    return true;
+  }
+
+  function activeEdges(nodes) {
+    return EDGES.filter(e => {
+      if (!nodes.has(e.from) || !nodes.has(e.to) || !edgeAllowed(e)) return false;
+      if (state.playing && e.feedback) return state.feedbackShown.has(e.id);
+      return true;
+    });
+  }
+
+  function lineage(id, edges) {
+    const keep = new Set([id]);
+    const walk = (cur, down) => {
+      for (const e of edges) {
+        if (e.feedback || e.side) continue;
+        const next = down ? (e.from === cur ? e.to : null) : (e.to === cur ? e.from : null);
+        if (next && !keep.has(next)) { keep.add(next); walk(next, down); }
+      }
+    };
+    walk(id, true);
+    walk(id, false);
+    return keep;
+  }
+
+  // Geometry
+  function box(id) {
+    const c = canvas.getBoundingClientRect();
+    const b = document.getElementById('node-' + id).getBoundingClientRect();
+    const l = b.left - c.left;
+    const t = b.top - c.top;
+    return { l, t, r: l + b.width, b: t + b.height, cx: l + b.width / 2, cy: t + b.height / 2 };
+  }
+
+  function rounded(pts, rad) {
+    let d = 'M' + pts[0][0] + ' ' + pts[0][1];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i - 1];
+      const [cx, cy] = pts[i];
+      const [nx, ny] = pts[i + 1];
+      const d1 = Math.hypot(cx - px, cy - py);
+      const d2 = Math.hypot(nx - cx, ny - cy);
+      const k = Math.min(rad, d1 / 2, d2 / 2);
+      const ax = cx - ((cx - px) / d1) * k;
+      const ay = cy - ((cy - py) / d1) * k;
+      const bx = cx + ((nx - cx) / d2) * k;
+      const by = cy + ((ny - cy) / d2) * k;
+      d += ' L' + ax + ' ' + ay + ' Q' + cx + ' ' + cy + ' ' + bx + ' ' + by;
+    }
+    const last = pts[pts.length - 1];
+    return d + ' L' + last[0] + ' ' + last[1];
+  }
+
+  function curveX(x1, y1, x2, y2) {
+    const mx = (x1 + x2) / 2;
+    return 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2;
+  }
+
+  function pathFor(e) {
+    const a = box(e.from);
+    const b = box(e.to);
+    switch (e.route) {
+      case 'v': {
+        const my = (a.b + b.t) / 2;
+        const bx = b.cx + (e.toDx || 0);
+        return 'M' + a.cx + ' ' + a.b + ' C' + a.cx + ' ' + my + ' ' + bx + ' ' + my + ' ' + bx + ' ' + b.t;
+      }
+      case 'right': return curveX(a.r, a.cy, b.l, b.cy);
+      case 'left': return curveX(a.l, a.cy, b.r, b.cy);
+      case 'fbLeft': {
+        const floor = Math.max(a.b, box('green').b) + 26;
+        const x = b.l - 26;
+        return rounded([[a.cx, a.b], [a.cx, floor], [x, floor], [x, b.cy], [b.l, b.cy]], 14);
+      }
+      case 'fbRight': {
+        const x = Math.max(a.r, b.r) + 26;
+        return rounded([[a.r, a.cy], [x, a.cy], [x, b.cy], [b.r, b.cy]], 14);
+      }
+      case 'ctx': {
+        const x = 10;
+        return rounded([[a.l, a.cy], [x, a.cy], [x, b.cy], [b.l, b.cy]], 14);
+      }
+      default: return '';
+    }
+  }
+
+  function mk(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  // Drawing
+  function drawWires(edges, focus) {
+    gBase.textContent = '';
+    gWire.textContent = '';
+    gDots.textContent = '';
+    paths.clear();
+    particles = [];
+    cometEl = null;
+
+    const c = canvas.getBoundingClientRect();
+    svg.setAttribute('viewBox', '0 0 ' + c.width + ' ' + c.height);
+
+    for (const e of EDGES) {
+      if (e.feedback) continue;
+      gBase.appendChild(mk('path', { d: pathFor(e), class: 'wire-base' + (e.sat ? ' sat' : '') }));
+    }
+
+    const animate = !reduceMotion.matches;
+    for (const e of edges) {
+      if (focus && !(focus.has(e.from) && focus.has(e.to))) continue;
+      const d = pathFor(e);
+      const tone = e.tone ? ' ' + e.tone : '';
+      if (!e.sat) gWire.appendChild(mk('path', { d, class: 'wire glow' + tone, filter: 'url(#soft)' }));
+      const marker = e.tone ? 'url(#arrow-' + e.tone + ')' : 'url(#arrow)';
+      const attrs = { d, class: 'wire' + tone + (e.sat ? ' sat' : ''), 'marker-end': marker };
+      if (e.side) attrs['marker-start'] = marker;
+      const p = mk('path', attrs);
+      gWire.appendChild(p);
+      if (e.side) {
+        const midY = (box(e.from).cy + box(e.to).cy) / 2;
+        const label = mk('text', { transform: 'translate(24 ' + midY + ') rotate(-90)', 'text-anchor': 'middle', class: 'wire-label' });
+        label.textContent = 'contexto del ticket · resultado a Jira';
+        gWire.appendChild(label);
+      }
+      paths.set(e.id, p);
+      if (animate && !e.sat && !state.playing) {
+        const len = p.getTotalLength();
+        for (let i = 0; i < 2; i++) {
+          const el = mk('circle', { r: '2.6', class: 'dot' + tone, filter: 'url(#dotglow)', cx: '-20', cy: '-20' });
+          gDots.appendChild(el);
+          particles.push({ el, path: p, len, t: i / 2 });
+        }
+      }
+    }
+
+    if (state.comet && animate) {
+      cometEl = mk('circle', { r: '4', class: 'comet' + (state.comet.tone ? ' ' + state.comet.tone : ''), filter: 'url(#dotglow)', cx: '-20', cy: '-20' });
+      gDots.appendChild(cometEl);
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderInspector() {
+    let id = state.selected;
+    let stepLine = '';
+    if (state.playing && state.stepIndex >= 0) {
+      id = state.steps[state.stepIndex].id;
+      stepLine = ' · Paso ' + (state.stepIndex + 1) + ' de ' + state.steps.length;
+    }
+    let html;
+    let tone = '';
+    if (id) {
+      const n = NODES[id];
+      tone = n.tone || '';
+      html = '<div class="ins-kicker">' + esc(n.stage) + stepLine + '</div>'
+        + '<h2 class="ins-title">' + esc(n.title) + '</h2>'
+        + '<p class="ins-sub">' + esc(n.sub) + '</p>'
+        + '<p class="ins-body">' + esc(n.body) + '</p>'
+        + (n.bullets ? '<ul class="ins-list">' + n.bullets.map(b => '<li>' + esc(b) + '</li>').join('') + '</ul>' : '')
+        + (n.cmds ? '<pre class="ins-code">' + esc(n.cmds.join('\n')) + '</pre>' : '')
+        + '<div class="ins-ref">' + esc(n.ref) + ' del documento</div>';
+    } else {
+      const m = MODES[state.mode];
+      tone = state.reg ? 'err' : '';
+      html = '<div class="ins-kicker">Recorrido</div>'
+        + '<h2 class="ins-title">' + esc(m.title) + '</h2>'
+        + '<p class="ins-body">' + esc(m.text) + '</p>'
+        + (state.flaky ? '<p class="ins-note warn">' + esc(SIM.flaky) + '</p>' : '')
+        + (state.reg ? '<p class="ins-note err">' + esc(SIM.reg) + '</p>' : '')
+        + '<p class="ins-hint">Haz clic en un paso para ver qué ocurre ahí, o usa «Recorrer paso a paso».</p>';
+    }
+    insContent.innerHTML = html;
+    inspector.dataset.tone = tone;
+  }
+
+  function refresh() {
+    const nodes = activeNodes();
+    const edges = activeEdges(nodes);
+    const focus = state.selected ? lineage(state.selected, edges) : null;
+    const current = state.playing && state.stepIndex >= 0 ? state.steps[state.stepIndex].id : null;
+    for (const id of Object.keys(NODES)) {
+      const el = document.getElementById('node-' + id);
+      const on = (nodes.has(id) && (!focus || focus.has(id))) || state.selected === id;
+      el.classList.toggle('is-active', on);
+      el.classList.toggle('is-dim', !on);
+      el.classList.toggle('is-selected', state.selected === id);
+      el.classList.toggle('is-current', current === id);
+      el.setAttribute('aria-pressed', String(state.selected === id));
+    }
+    drawWires(edges, focus);
+    renderInspector();
+  }
+
+  // Step-by-step walkthrough
+  function buildSteps() {
+    const steps = STEPS[state.mode].map(id => ({ id }));
+    if (state.flaky) steps.push({ id: 'flaky' });
+    if (state.reg) {
+      steps.push({ id: 'red' });
+      if (state.mode === 'full' || state.mode === 'agent') steps.push({ id: 'coder', via: 'red-coder' });
+      if (state.mode === 'full' || state.mode === 'human') steps.push({ id: 'dev', via: 'red-dev' });
+    } else {
+      steps.push({ id: 'green' });
+    }
+    return steps;
+  }
+
+  function startPlay() {
+    state.selected = null;
+    state.playing = true;
+    state.steps = buildSteps();
+    state.stepIndex = -1;
+    state.visited = new Set();
+    state.feedbackShown = new Set();
+    playBtn.setAttribute('aria-pressed', 'true');
+    playBtn.textContent = 'Detener';
+    expandInspector();
+    advance();
+  }
+
+  function advance() {
+    state.stepIndex += 1;
+    if (state.stepIndex >= state.steps.length) { stopPlay(); return; }
+    const step = state.steps[state.stepIndex];
+    let via = step.via || null;
+    if (via) {
+      state.feedbackShown.add(via);
+    } else {
+      const prev = state.stepIndex > 0 ? state.steps[state.stepIndex - 1].id : null;
+      const candidates = EDGES.filter(e => e.to === step.id && !e.feedback && !e.sat && state.visited.has(e.from) && edgeAllowed(e));
+      const pick = candidates.find(e => e.from === prev) || candidates[0];
+      via = pick ? pick.id : null;
+    }
+    state.visited.add(step.id);
+    const edge = via ? EDGES.find(e => e.id === via) : null;
+    state.comet = edge ? { edge: edge.id, tone: edge.tone || '', start: performance.now() } : null;
+    refresh();
+    state.timer = setTimeout(advance, STEP_MS);
+  }
+
+  function stopPlay() {
+    clearTimeout(state.timer);
+    state.timer = null;
+    state.playing = false;
+    state.comet = null;
+    state.stepIndex = -1;
+    playBtn.setAttribute('aria-pressed', 'false');
+    playBtn.textContent = 'Recorrer paso a paso';
+    refresh();
+  }
+
+  // Interaction
+  function select(id) {
+    if (state.playing) stopPlay();
+    state.selected = state.selected === id ? null : id;
+    expandInspector();
+    refresh();
+  }
+
+  function expandInspector() {
+    inspector.classList.remove('is-collapsed');
+    insToggle.setAttribute('aria-expanded', 'true');
+    insToggle.textContent = 'Minimizar';
+  }
+
+  document.querySelectorAll('[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.playing) stopPlay();
+      state.mode = btn.dataset.mode;
+      state.selected = null;
+      document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      refresh();
+    });
+  });
+
+  regInput.addEventListener('change', () => {
+    if (state.playing) stopPlay();
+    state.reg = regInput.checked;
+    refresh();
+  });
+
+  flakyInput.addEventListener('change', () => {
+    if (state.playing) stopPlay();
+    state.flaky = flakyInput.checked;
+    refresh();
+  });
+
+  playBtn.addEventListener('click', () => (state.playing ? stopPlay() : startPlay()));
+
+  insToggle.addEventListener('click', () => {
+    const collapsed = inspector.classList.toggle('is-collapsed');
+    insToggle.setAttribute('aria-expanded', String(!collapsed));
+    insToggle.textContent = collapsed ? 'Expandir' : 'Minimizar';
+  });
+
+  document.addEventListener('keydown', ev => {
+    if (ev.key !== 'Escape') return;
+    if (state.playing) stopPlay();
+    if (state.selected) { state.selected = null; refresh(); }
+  });
+
+  // Animation loop
+  const ease = k => (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+
+  function tick(now) {
+    for (const p of particles) {
+      if (!p.len) continue;
+      p.t = (p.t + 1.3 / p.len) % 1;
+      const pt = p.path.getPointAtLength(p.t * p.len);
+      p.el.setAttribute('cx', pt.x);
+      p.el.setAttribute('cy', pt.y);
+    }
+    if (cometEl && state.comet) {
+      const path = paths.get(state.comet.edge);
+      if (path) {
+        const k = Math.min(1, (now - state.comet.start) / COMET_MS);
+        const len = path.getTotalLength();
+        const pt = path.getPointAtLength(ease(k) * len);
+        cometEl.setAttribute('cx', pt.x);
+        cometEl.setAttribute('cy', pt.y);
+        cometEl.style.opacity = k < 1 ? '1' : '0';
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Boot
+  let raf = 0;
+  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(refresh); };
+  new ResizeObserver(schedule).observe(canvas);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+  reduceMotion.addEventListener('change', schedule);
+  refresh();
+  requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "universe": [
+    "src/App/Use.cs",
+    "src/Lib/AuditedAttribute.cs",
+    "src/Lib/HostingExtensions.cs",
+    "src/Lib/Order.Totals.cs",
+    "src/Lib/Order.cs",
+    "src/Lib/OrderExtensions.cs",
+    "src/Lib/Skipped.cs",
+    "src/Shared/Linked.cs",
+    "tests/App.Tests/UseTest.cs"
+  ],
+  "edges": [
+    ["src/App/Use.cs", "src/Lib/AuditedAttribute.cs"],
+    ["src/App/Use.cs", "src/Lib/HostingExtensions.cs"],
+    ["src/App/Use.cs", "src/Lib/Order.Totals.cs"],
+    ["src/App/Use.cs", "src/Lib/Order.cs"],
+    ["src/App/Use.cs", "src/Shared/Linked.cs"],
+    ["src/Lib/OrderExtensions.cs", "src/Lib/Order.Totals.cs"],
+    ["src/Lib/OrderExtensions.cs", "src/Lib/Order.cs"],
+    ["src/Shared/Linked.cs", "src/Lib/Order.Totals.cs"],
+    ["src/Shared/Linked.cs", "src/Lib/Order.cs"],
+    ["tests/App.Tests/UseTest.cs", "src/App/Use.cs"],
+    ["tests/App.Tests/UseTest.cs", "src/Lib/Order.Totals.cs"],
+    ["tests/App.Tests/UseTest.cs", "src/Lib/Order.cs"]
+  ]
+}

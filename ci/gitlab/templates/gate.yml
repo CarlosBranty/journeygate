@@ -1,0 +1,107 @@
+# GitLab CI/CD component: guard gate (plan -> shard -> finalize).
+#
+#   include:
+#     - component: $CI_SERVER_FQDN/<group>/guard-ci/gate@<version>
+#       inputs:
+#         shards: 8
+#
+# GitLab sets CI_NODE_INDEX starting at 1, which matches guard's 1-based shards.
+# The docker:dind service is only needed when [app].start uses docker compose;
+# it requires a privileged runner. With dind, compose publishes the app's ports
+# on the `docker` service host, not inside the job container, so `localhost`
+# never becomes ready. Point target.toml at that host instead of the default
+# that guard init writes:
+#
+#   [app]
+#   base_url = "http://docker:<port>"   # e.g. http://docker:3000
+#
+# Apps started as plain processes (no compose) keep base_url on localhost.
+spec:
+  inputs:
+    shards:
+      type: number
+      default: 8
+      description: Number of parallel shard jobs.
+    image:
+      type: string
+      default: ghcr.io/e2e-agentdev/guard:0.1.0
+      description: Image with the guard binary, Playwright browsers and the Docker CLI (deploy/Dockerfile).
+    e2e-dir:
+      type: string
+      default: e2e-playwright
+      description: Playwright project dir, relative to the repository root.
+---
+stages: [plan, shard, finalize]
+
+variables:
+  DOCKER_HOST: tcp://docker:2375 # dind service: docker compose apps run here
+  DOCKER_TLS_CERTDIR: ""
+  GUARD_E2E_DIR: $[[ inputs.e2e-dir ]]
+
+default:
+  image: $[[ inputs.image ]]
+  services:
+    - name: docker:27.5.1-dind
+      alias: docker
+  cache:
+    # Without guard serve, the duration history used by plan lives in the pipeline cache.
+    key: guard-durations
+    paths: [.guard/durations.json]
+    policy: pull
+
+.guard:node-deps:
+  before_script:
+    - |
+      if [ -f pnpm-lock.yaml ]; then
+        corepack enable && pnpm install --frozen-lockfile
+      elif [ -f "$GUARD_E2E_DIR/package-lock.json" ]; then
+        npm ci --prefix "$GUARD_E2E_DIR"
+      fi
+
+guard:plan:
+  stage: plan
+  services: []
+  script:
+    - guard --e2e-dir "$GUARD_E2E_DIR" gate plan --shards $[[ inputs.shards ]] --out plan/
+  artifacts:
+    paths: [plan/]
+    expire_in: 1 day
+
+guard:shard:
+  stage: shard
+  extends: .guard:node-deps
+  needs: [guard:plan]
+  parallel: $[[ inputs.shards ]]
+  script:
+    # Exit 0 even with red tests: only infrastructure errors fail this job.
+    - guard --e2e-dir "$GUARD_E2E_DIR" gate shard --index "$CI_NODE_INDEX" --plan plan/
+  artifacts:
+    when: always
+    paths:
+      - $[[ inputs.e2e-dir ]]/blob-report/
+      - .guard/app.log
+    expire_in: 7 days
+
+guard:finalize:
+  stage: finalize
+  extends: .guard:node-deps
+  needs: [guard:shard]
+  when: always
+  services: []
+  variables:
+    GIT_DEPTH: 0 # the baseline run (Phase 2+) needs the base commit
+    RUN_ID: $CI_PIPELINE_ID-$CI_JOB_ID
+  cache:
+    key: guard-durations
+    paths: [.guard/durations.json]
+    policy: pull-push
+    when: always
+  script:
+    # Blob names carry the shard index, so the parallel artifacts never collide.
+    - guard --e2e-dir "$GUARD_E2E_DIR" gate finalize --blobs "$GUARD_E2E_DIR/blob-report/"
+  artifacts:
+    when: always
+    paths:
+      - $[[ inputs.e2e-dir ]]/playwright-report/
+      - .guard/verdict.json
+    expire_in: 14 days

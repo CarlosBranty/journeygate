@@ -1,0 +1,208 @@
+# `guard serve` deployment: guard + Postgres (decision log, gate history,
+# memory) + an S3-compatible evidence store (SeaweedFS). The model gateway
+# (LiteLLM + Redis) is opt-in under the "agents" profile; the Docker socket
+# for the agent lane is a separate override file. See deploy/README.md.
+#
+# Every value comes from deploy/.env (copy deploy/env.example); this file
+# holds no secret. From the repository root:
+#   docker compose -f deploy/docker-compose.yml up -d --build --wait
+#   docker compose -f deploy/docker-compose.yml --profile agents up -d --wait   # + gateway
+name: guard
+
+services:
+  guard:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: server
+    image: guard-server:dev
+    command: ["serve", "--repo", "/repo"]
+    init: true
+    restart: unless-stopped
+    ports:
+      - "${GUARD_PORT:-8080}:8080"
+    environment:
+      # Postgres for triage, gate results, memory and the agent lane queue.
+      DATABASE_URL: postgres://guard:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}@postgres:5432/guard
+      # Bearer token for /api/*; guard serve refuses to start without it.
+      GUARD_SERVER_TOKEN: ${GUARD_SERVER_TOKEN:?set GUARD_SERVER_TOKEN in deploy/.env}
+      # Evidence store. The credentials live in the URL (finalize-phase2.md,
+      # "Storage"); guard creates the bucket on first upload if s3-init did not.
+      # The host is S3_PUBLIC_HOST, not the service name: guard signs presigned
+      # evidence links (Jira, PR, report_url, trace viewer) for this host, and
+      # SigV4 covers the host, so it must resolve both for readers outside the
+      # stack (port 8333 is published) and for guard (network alias on s3).
+      GUARD_STORAGE_URL: s3+http://${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/.env}:${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/.env}@${S3_PUBLIC_HOST:?set S3_PUBLIC_HOST in deploy/.env (DNS name readers use to reach this host)}:8333/${S3_BUCKET:-guard-evidence}
+      # Optional adapters: passed through only when set in deploy/.env or the
+      # shell (server-api.md, "Environment"). Unset = the route answers 501.
+      GUARD_DASHBOARD_TOKEN:
+      GUARD_STALENESS_INTERVAL:
+      TYPESAFE_API_KEY:
+      JEV_URL:
+      JIRA_BASE_URL:
+      JIRA_EMAIL:
+      JIRA_API_TOKEN:
+      JIRA_SUGGESTED_FIELD:
+      JIRA_ACCEPTANCE_CRITERIA_FIELD:
+      JIRA_PRE_EXISTING_PRIORITY:
+      GUARD_JIRA_WEBHOOK_SECRET:
+      GITHUB_TOKEN:
+      GITHUB_REPOSITORY:
+      GITHUB_API_URL:
+      GUARD_GITHUB_WEBHOOK_SECRET:
+      GITLAB_TOKEN:
+      GITLAB_PROJECT:
+      GITLAB_API_URL:
+      GUARD_GITLAB_WEBHOOK_SECRET:
+      GUARD_MEMORY_READ_DATABASE_URL:
+    volumes:
+      # The app checkout guard serves (target.toml, catalog, sources). It must
+      # be writable by uid 10001 when the agent lane runs (.guard/agents/).
+      - ${GUARD_REPO_DIR:?set GUARD_REPO_DIR in deploy/.env (absolute path of the app checkout)}:/repo
+    depends_on:
+      postgres:
+        condition: service_healthy
+      s3:
+        condition: service_healthy
+      s3-init:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:17.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: guard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_DB: guard
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      # Creates the `litellm` database for the gateway (first start only).
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "guard", "-d", "guard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # S3-compatible evidence store. The MinIO images are no longer published on
+  # Docker Hub or Quay, so this is SeaweedFS (Apache-2.0), single node: the
+  # S3 API on :8333, path-style. The identity file is written inside the
+  # container from the environment at every start; nothing is stored in git.
+  s3:
+    image: chrislusf/seaweedfs:3.97
+    restart: unless-stopped
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/.env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/.env}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        umask 077
+        printf '{"identities":[{"name":"guard","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}' "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json
+        # allowedOrigins: trace links open in https://trace.playwright.dev,
+        # which fetches the presigned trace from the bucket (CORS).
+        exec weed -logtostderr=true server -dir=/data -ip=s3 -ip.bind=0.0.0.0 \
+          -volume.max=0 -master.volumeSizeLimitMB=1024 \
+          -s3 -s3.port=8333 -s3.config=/tmp/s3.json \
+          -s3.allowedOrigins=https://trace.playwright.dev
+    # Evidence links are presigned for S3_PUBLIC_HOST:8333, so the S3 API is
+    # published and that name also resolves to this container inside the
+    # stack. Every object request still needs the credentials or a signature.
+    ports:
+      - "8333:8333"
+    networks:
+      default:
+        aliases:
+          - ${S3_PUBLIC_HOST:?set S3_PUBLIC_HOST in deploy/.env (DNS name readers use to reach this host)}
+    volumes:
+      - s3-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # One-shot bootstrap: creates the evidence bucket and its retention (TTL).
+  # Keep S3_EVIDENCE_TTL in line with [evidence].retention_days (default 14).
+  s3-init:
+    image: chrislusf/seaweedfs:3.97
+    restart: "no"
+    environment:
+      S3_BUCKET: ${S3_BUCKET:-guard-evidence}
+      S3_EVIDENCE_TTL: ${S3_EVIDENCE_TTL:-14d}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        printf 's3.bucket.create -name %s\nfs.configure -locationPrefix=/buckets/%s/ -ttl=%s -apply\n' \
+          "$$S3_BUCKET" "$$S3_BUCKET" "$$S3_EVIDENCE_TTL" | weed shell -master=s3:9333 -filer=s3:8888
+    depends_on:
+      s3:
+        condition: service_healthy
+
+  # ---- profile "agents": the model gateway (docs/contracts/tokens.md) -------
+  # The only model endpoint a sandbox can reach. Provider keys are passed
+  # through by name from deploy/.env; deploy/litellm/config.yaml holds none.
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.77.7-stable
+    profiles: ["agents"]
+    restart: unless-stopped
+    # Compose interpolates every service even when its profile is off, so the
+    # required keys of this profile are checked at container start, not ${:?}.
+    entrypoint: ["/bin/sh", "-c", 'test -n "$$LITELLM_MASTER_KEY" || { echo "set LITELLM_MASTER_KEY in deploy/.env" >&2; exit 1; }; exec docker/prod_entrypoint.sh "$$@"', "--"]
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      LITELLM_DATABASE_URL: postgresql://guard:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}@postgres:5432/litellm
+      DATABASE_URL: postgresql://guard:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}@postgres:5432/litellm
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      ANTHROPIC_API_KEY:
+      OPENAI_API_KEY:
+      GEMINI_API_KEY:
+      OTEL_EXPORTER_OTLP_ENDPOINT:
+      OTEL_EXPORTER_OTLP_PROTOCOL:
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    networks: [default, gateway]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:4000/health/liveliness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Response cache of the gateway (litellm_settings.cache_params).
+  redis:
+    image: redis:7.4.6-bookworm
+    profiles: ["agents"]
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-}
+    command: ["sh", "-c", 'test -n "$$REDIS_PASSWORD" || { echo "set REDIS_PASSWORD in deploy/.env" >&2; exit 1; }; exec redis-server --requirepass "$$REDIS_PASSWORD"']
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  # The gateway network: litellm (and guard, with the agents override) only.
+  # Sandbox egress forwarders start here (GUARD_SANDBOX_EGRESS_NETWORK), so
+  # they can reach the gateway but not Postgres or the evidence store.
+  gateway:
+    name: guard-gateway
+
+volumes:
+  pg-data:
+  s3-data:

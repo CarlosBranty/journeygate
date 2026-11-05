@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "mini",
+    "-c",
+    "mini.yaml",
+    "-c",
+    "/task/mini/guard.yaml",
+    "-m",
+    "litellm_proxy/openai/gpt-5",
+    "-t",
+    "You are the coder agent of guard. You work non-interactively in /workspace; nobody will answer questions.\nInstructions for this repository are in /agents/AGENTS.md and /agents/skills (read-only). The full task is /task/task.json.\n\n## Rules\n- Make the sealed spec pass by changing application code only.\n- Never edit tests, the sealed spec, lockfiles, CI or guard configuration; the diff is checked against the paths below.\n- Paths are repo-relative globs; deny wins over write.\n- Write: src/**\n- Deny: tests/**, tests/features/SHOP-101.spec.ts, package.json, package-lock.json, pnpm-lock.yaml, yarn.lock, bun.lockb, target.toml, thresholds.toml, agents.toml, playwright.config.*, .github/**, .gitlab-ci.yml, .gitlab/**\n- Sealed spec (read-only): tests/features/SHOP-101.spec.ts\n\n## Tools\nguard_test, guard_failure, guard_history, guard_map\n\n## Memory\n# Repository facts (orchestrator memory; verify items marked needs_review)\n- [12] journey:catalog catalog/stock-badge: Stock badge reads product.stock, not inventory.available\n\n## Ticket SHOP-101 (acme/shop)\nOut-of-stock badge does not appear on the product card\n\n## Acceptance criteria\n- A product with stock 0 shows the badge 'Out of stock'\n- The add-to-cart button is disabled for that product\n\n## Attempt\n1 of 3\n",
+    "-y",
+    "--exit-immediately",
+    "-l",
+    "5",
+    "-o",
+    "/task/mini/trajectory.json"
+  ],
+  "env": {
+    "MSWEA_CONFIGURED": "true",
+    "MSWEA_COST_TRACKING": "ignore_errors",
+    "MSWEA_GLOBAL_CONFIG_DIR": "/task/mini",
+    "MSWEA_SILENT_STARTUP": "1"
+  },
+  "workdir": "/workspace",
+  "stdin": null,
+  "files": [
+    {
+      "path": "/task/mini/guard.yaml",
+      "contents": "{\n  \"environment\": {\n    \"cwd\": \"/workspace\",\n    \"timeout\": 300\n  },\n  \"model\": {\n    \"cost_tracking\": \"ignore_errors\",\n    \"model_kwargs\": {\n      \"api_base\": \"http://llm-gateway:4000\",\n      \"drop_params\": true,\n      \"prompt_cache_key\": \"acme/shop:coder\"\n    }\n  }\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "issues": [
+    {
+      "id": "10210",
+      "key": "SHOP-210",
+      "self": "https://acme.atlassian.net/rest/api/3/issue/10210",
+      "fields": {
+        "summary": "[guard] checkout.customer-card: Timeout <n>ms exceeded",
+        "labels": ["guard", "guard-regression", "guard-fp-1a2b3c4d"],
+        "status": {
+          "name": "In Progress",
+          "statusCategory": { "id": 4, "key": "indeterminate", "name": "In Progress" }
+        }
+      }
+    },
+    {
+      "id": "10150",
+      "key": "SHOP-150",
+      "self": "https://acme.atlassian.net/rest/api/3/issue/10150",
+      "fields": {
+        "summary": "[guard] checkout.customer-card: Timeout <n>ms exceeded",
+        "labels": ["guard", "guard-regression", "guard-fp-1a2b3c4d"],
+        "status": {
+          "name": "Done",
+          "statusCategory": { "id": 3, "key": "done", "name": "Done" }
+        }
+      }
+    }
+  ],
+  "isLast": true
+}

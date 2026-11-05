@@ -1,0 +1,9 @@
+{
+  "id": 9001, "iid": 7, "project_id": 42, "title": "WIP", "state": "opened",
+  "target_branch": "main", "source_branch": "wip",
+  "author": { "username": "dev" },
+  "sha": "cccccccccccccccccccccccccccccccccccccccc",
+  "web_url": "https://gitlab.com/acme/platform/shop/-/merge_requests/7",
+  "references": { "full": "acme/platform/shop!7" },
+  "diff_refs": null
+}

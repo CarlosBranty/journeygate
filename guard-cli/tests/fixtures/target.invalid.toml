@@ -1,0 +1,9 @@
+version = 1
+
+[app]
+name = "Shop App"
+base_ulr = "http://localhost:3000"
+
+[areas.checkout]
+description = "Checkout"
+paths = ["web/**"]

@@ -1,0 +1,6 @@
+{
+  "timestamp": 1761829200000,
+  "webhookEvent": "comment_created",
+  "comment": { "id": "1", "body": "hi" },
+  "issue": { "id": "10007", "key": "SHOP-7", "fields": { "summary": "x" } }
+}

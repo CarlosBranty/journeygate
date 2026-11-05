@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "journeys": [
+    {
+      "id": "checkout.customer-card",
+      "area": "nope",
+      "title": "t",
+      "impact_question": "q",
+      "paths": [],
+      "smoke": false,
+      "quarantined": false
+    }
+  ]
+}

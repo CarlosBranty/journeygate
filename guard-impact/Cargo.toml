@@ -1,0 +1,33 @@
+[package]
+name = "guard-impact"
+description = "ImpactAnalyzer adapter: tree-sitter import graph, fan-out, areas and journey change facts."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+globset = "=0.4.17"
+guard-core = { path = "../guard-core" }
+ignore = "=0.4.24"
+# MSBuild project files (.csproj, Directory.Build.props) for the C# plugin.
+roxmltree = "=0.21.1"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+streaming-iterator = "=0.1.9"
+thiserror = "=2.0.17"
+toml = "=0.9.8"
+# Grammars must share the tree-sitter ABI: every crate below builds on
+# tree-sitter-language 0.1.x and loads with tree-sitter 0.25.
+tree-sitter = "=0.25.10"
+tree-sitter-c-sharp = "=0.23.5"
+tree-sitter-go = "=0.25.0"
+tree-sitter-javascript = "=0.23.1"
+tree-sitter-php = "=0.25.1"
+tree-sitter-python = "=0.25.0"
+tree-sitter-rust = "=0.24.2"
+tree-sitter-typescript = "=0.23.2"
+
+[dev-dependencies]
+tempfile = "=3.23.0"

@@ -1,0 +1,11 @@
+<main id="main" hx-get="/coverage" hx-trigger="every 60s" hx-swap="outerHTML">
+<h1>Coverage</h1>
+<p>Areas of <code>target.toml</code> with zero or one active journeys.</p>
+{% if rows.is_empty() %}<p>Every area has at least two active journeys.</p>{% else %}
+<table>
+<thead><tr><th>Area</th><th>Description</th><th>Active journeys</th><th>Quarantined</th></tr></thead>
+<tbody>
+{% for r in rows %}<tr><td>{{ r.area }}</td><td>{{ r.description }}</td><td>{{ r.active }}</td><td>{{ r.quarantined }}</td></tr>
+{% endfor %}</tbody>
+</table>{% endif %}
+</main>

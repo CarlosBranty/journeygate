@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "app": {
+    "name": "shop",
+    "languages": ["typescript", "go"],
+    "start": "docker compose up -d --wait",
+    "stop": "docker compose down -v",
+    "base_url": "http://localhost:3000",
+    "ready_path": "/healthz",
+    "preview_url": "https://pr-{pr}.preview.example.com"
+  },
+  "testability": {
+    "login_path": "/__test__/login",
+    "seed_path": "/__test__/seed",
+    "token_env": "GUARD_TEST_TOKEN",
+    "roles": ["customer", "admin"],
+    "test_id_attribute": "data-testid"
+  },
+  "areas": {
+    "checkout": {
+      "description": "Cart, payment and order confirmation",
+      "paths": ["web/src/checkout/**", "services/orders/**", "services/payments/**"],
+      "sensitive": true
+    },
+    "inventory": {
+      "description": "Stock levels, reservations and restock",
+      "paths": ["services/inventory/**"]
+    },
+    "billing": {
+      "description": "Invoices and receipts",
+      "paths": ["services/billing/**"]
+    },
+    "ui_general": {
+      "description": "Shared UI components and copy",
+      "paths": ["web/src/components/**"]
+    }
+  },
+  "hard_rules": {
+    "human_only_paths": ["**/migrations/**", "infra/**"],
+    "max_fan_out_for_agent": 10
+  },
+  "network": {
+    "blocked_domains": ["*.google-analytics.com", "*.intercom.io"],
+    "recorded_hosts": ["api.payments-sandbox.example.com"]
+  },
+  "evidence": {
+    "video": "on-first-retry",
+    "retention_days": 14,
+    "storage_url_env": "GUARD_STORAGE_URL"
+  },
+  "tracker": {
+    "kind": "jira",
+    "project": "SHOP",
+    "ticket_pattern": "SHOP-\\d+",
+    "require_ticket": "warn"
+  },
+  "code_host": {
+    "kind": "github"
+  },
+  "server": {
+    "url": "https://guard.example.com"
+  }
+}

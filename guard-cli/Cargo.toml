@@ -1,0 +1,50 @@
+[package]
+name = "guard-cli"
+description = "The guard binary: local and CI runner for the E2E journey suite."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "guard"
+path = "src/main.rs"
+
+[dependencies]
+async-trait = "=0.1.89"
+clap = { version = "=4.5.53", features = ["derive"] }
+# Styled `guard init` prompts (MIT; cli.md "Prompts"): intro, spinner, note,
+# select, input, confirm, outro. Only used on an interactive TTY.
+cliclack = "=0.5.6"
+# `fakes` backs the explicit fake modes of `guard serve` (GUARD_JEV_FAKE,
+# GUARD_JIRA_FAKE; server-api.md "Fake mode"). They are never on by default.
+guard-agents = { path = "../guard-agents" }
+guard-core = { path = "../guard-core", features = ["fakes"] }
+guard-codehost = { path = "../guard-codehost" }
+guard-impact = { path = "../guard-impact" }
+guard-jev = { path = "../guard-jev" }
+guard-map = { path = "../guard-map" }
+guard-mcp = { path = "../guard-mcp" }
+guard-runtimes = { path = "../guard-runtimes" }
+guard-sandbox = { path = "../guard-sandbox" }
+guard-server = { path = "../guard-server" }
+guard-store = { path = "../guard-store" }
+guard-tracker = { path = "../guard-tracker" }
+percent-encoding = "=2.3.2"
+# No-echo token prompt of `guard connect` (Apache-2.0; depends only on
+# rtoolbox, libc / windows-sys, which the workspace already builds).
+rpassword = "=7.5.4"
+# `guard explain --format xlsx` (MIT OR Apache-2.0): the Excel export.
+rust_xlsxwriter = "=0.92.0"
+reqwest = { version = "=0.12.24", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+tokio = { version = "=1.48.0", features = ["io-std", "macros", "net", "process", "rt-multi-thread", "time"] }
+
+[dev-dependencies]
+assert_cmd = "=2.0.17"
+tempfile = "=3.23.0"
+wiremock = "=0.6.5"
+# Reads back the xlsx export in tests (already built for rust_xlsxwriter).
+zip = { version = "=4.6.1", default-features = false, features = ["deflate"] }

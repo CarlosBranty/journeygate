@@ -1,0 +1,7 @@
+{
+  "object_kind": "merge_request",
+  "object_attributes": {
+    "iid": 7, "title": "SHOP-456", "source_branch": "feature/SHOP-456-checkout", "action": "approved",
+    "last_commit": { "id": "cccccccccccccccccccccccccccccccccccccccc" }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/agents.schema.json",
+  "title": "agents.toml",
+  "description": "Agent runtimes, models, budgets, gateway and scheduler (docs/contracts/agents-toml.md). Validated on the JSON form of the TOML document. Credentials appear only as env var names.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "gateway", "roles", "agents", "scheduler"],
+  "$defs": {
+    "envName": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "agentName": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "positiveInt": { "type": "integer", "minimum": 1 },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "runtime", "model", "budget_usd"],
+      "properties": {
+        "role": { "enum": ["qa", "coder"] },
+        "runtime": { "enum": ["claude-code", "codex", "copilot-cli", "mini-swe-agent", "openhands", "fake"] },
+        "model": { "type": "string", "minLength": 1, "description": "A gateway model name (or a Copilot model when via_gateway = false)." },
+        "budget_usd": { "type": "number", "exclusiveMinimum": 0, "description": "max_budget of the virtual key minted per attempt." },
+        "max_attempts": { "type": "integer", "minimum": 1, "maximum": 3, "default": 3 },
+        "timeout_secs": { "type": "integer", "minimum": 60, "default": 1800 },
+        "via_gateway": { "type": "boolean", "default": true, "description": "false only for copilot-cli with Copilot-hosted models (explicit egress exception)." },
+        "copilot_token_env": { "$ref": "#/$defs/envName", "description": "Required when via_gateway = false (COPILOT_GITHUB_TOKEN)." },
+        "image": { "type": "string", "pattern": "^[^@\\s]+@sha256:[0-9a-f]{64}$", "description": "Sandbox image pinned by digest; default [scheduler].image." },
+        "rpm_limit": { "$ref": "#/$defs/positiveInt" },
+        "tpm_limit": { "$ref": "#/$defs/positiveInt" },
+        "max_parallel_requests": { "$ref": "#/$defs/positiveInt" }
+      }
+    }
+  },
+  "properties": {
+    "version": { "const": 1 },
+    "gateway": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "master_key_env"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^https?://", "description": "The only model endpoint a sandbox can reach." },
+        "master_key_env": { "$ref": "#/$defs/envName", "description": "Orchestrator-only LiteLLM master key (mints and revokes virtual keys)." },
+        "key_env": { "$ref": "#/$defs/envName", "default": "GUARD_GATEWAY_KEY", "description": "Env var the virtual key is injected as inside the sandbox." },
+        "key_duration_secs": { "type": "integer", "minimum": 60, "default": 7200 },
+        "rpm_limit": { "$ref": "#/$defs/positiveInt" },
+        "tpm_limit": { "$ref": "#/$defs/positiveInt" },
+        "max_parallel_requests": { "$ref": "#/$defs/positiveInt" }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qa", "coder"],
+      "properties": {
+        "qa": { "$ref": "#/$defs/agentName" },
+        "coder": { "$ref": "#/$defs/agentName" }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9-]*$" },
+      "patternProperties": { "^[a-z][a-z0-9-]*$": { "$ref": "#/$defs/agent" } },
+      "additionalProperties": false
+    },
+    "scheduler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_slots", "daily_usd_cap"],
+      "properties": {
+        "host_slots": { "$ref": "#/$defs/positiveInt", "description": "Concurrent sandboxes on this host (CPU and RAM)." },
+        "daily_usd_cap": { "type": "number", "exclusiveMinimum": 0, "description": "No new attempt starts once today's spend_records reach it (UTC day)." },
+        "provider_slots": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z0-9_-]+$" },
+          "additionalProperties": { "$ref": "#/$defs/positiveInt" },
+          "description": "Concurrent attempts per model provider prefix (anthropic, openai, gemini, ...)."
+        },
+        "lease_secs": { "type": "integer", "minimum": 30, "default": 300 },
+        "image": { "type": "string", "pattern": "^[^@\\s]+@sha256:[0-9a-f]{64}$" },
+        "best_of_n": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agents"],
+          "properties": {
+            "agents": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/agentName" } },
+            "label": { "type": "string", "minLength": 1, "description": "Only tickets with this Jira label run best-of-N; absent = never automatically." },
+            "select": { "enum": ["first_green_smallest_diff"], "default": "first_green_smallest_diff" }
+          }
+        }
+      }
+    }
+  }
+}

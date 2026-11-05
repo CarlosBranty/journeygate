@@ -1,0 +1,9 @@
+{
+    "name": "laravel/framework",
+    "autoload": {
+        "psr-4": {
+            "Illuminate\\": "src/Illuminate/",
+            "App\\": "../../../app/"
+        }
+    }
+}

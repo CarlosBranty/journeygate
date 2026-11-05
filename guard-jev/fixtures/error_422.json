@@ -1,0 +1,6 @@
+{
+  "detail": [
+    {"loc": ["body", "questions", "area", "criteria"], "msg": "Choice needs at least 2 options", "type": "value_error"},
+    {"loc": ["body", "state"], "msg": "field required", "type": "missing"}
+  ]
+}

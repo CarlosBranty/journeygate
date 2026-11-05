@@ -1,0 +1,20 @@
+{
+  "url": "https://api.github.com/repos/acme/shop/pulls/42",
+  "id": 1,
+  "node_id": "MDExOlB1bGxSZXF1ZXN0MQ==",
+  "html_url": "https://github.com/acme/shop/pull/42",
+  "number": 42,
+  "state": "open",
+  "locked": false,
+  "title": "SHOP-1: add cart totals",
+  "user": {"login": "guard-bot", "id": 1, "type": "Bot"},
+  "body": "<!-- guard:agent-pr SHOP-1 -->",
+  "labels": [],
+  "draft": true,
+  "head": {"label": "acme:agent/SHOP-1", "ref": "agent/SHOP-1", "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+  "base": {"label": "acme:trunk", "ref": "trunk", "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+  "auto_merge": null,
+  "merged": false,
+  "mergeable": null,
+  "maintainer_can_modify": false
+}

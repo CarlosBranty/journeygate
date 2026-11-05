@@ -1,0 +1,98 @@
+name: guard
+description: >-
+  Installs the guard binary and puts it on PATH. With version "source" it is
+  built with cargo from the repository that holds this action; otherwise the
+  prebuilt release asset for that version is downloaded.
+inputs:
+  version:
+    description: >-
+      "source" to build from this action's repository, or a release version
+      without the leading "v" (for example "0.1.0") to download.
+    required: false
+    default: source
+  e2e-dir:
+    description: >-
+      Playwright project dir, relative to the workspace. Exported as
+      GUARD_E2E_DIR so later steps can pass it with --e2e-dir.
+    required: false
+    default: e2e-playwright
+outputs:
+  path:
+    description: Absolute path of the installed guard binary.
+    value: ${{ steps.install.outputs.path }}
+  e2e-dir:
+    description: Absolute path of the Playwright project dir.
+    value: ${{ steps.e2e.outputs.dir }}
+runs:
+  using: composite
+  steps:
+    - name: Resolve install location
+      id: dirs
+      shell: bash
+      run: |
+        bin_dir="${RUNNER_TEMP}/guard-bin"
+        mkdir -p "$bin_dir"
+        exe=guard
+        if [ "$RUNNER_OS" = "Windows" ]; then exe=guard.exe; fi
+        echo "bin_dir=$bin_dir" >> "$GITHUB_OUTPUT"
+        echo "exe=$exe" >> "$GITHUB_OUTPUT"
+
+    - name: Build guard from source
+      if: inputs.version == 'source'
+      shell: bash
+      working-directory: ${{ github.action_path }}/../..
+      run: |
+        locked=""
+        if [ -f Cargo.lock ]; then locked="--locked"; fi
+        cargo build --release $locked -p guard-cli --bin guard
+        cp "target/release/${{ steps.dirs.outputs.exe }}" "${{ steps.dirs.outputs.bin_dir }}/"
+
+    - name: Download guard release
+      if: inputs.version != 'source'
+      shell: bash
+      env:
+        GUARD_VERSION: ${{ inputs.version }}
+        GUARD_REPOSITORY: ${{ github.action_repository || github.repository }}
+      run: |
+        case "${RUNNER_OS}-${RUNNER_ARCH}" in
+          Linux-X64)   target=x86_64-unknown-linux-gnu ;;
+          Linux-ARM64) target=aarch64-unknown-linux-gnu ;;
+          macOS-X64)   target=x86_64-apple-darwin ;;
+          macOS-ARM64) target=aarch64-apple-darwin ;;
+          Windows-X64) target=x86_64-pc-windows-msvc ;;
+          *) echo "error: unsupported runner ${RUNNER_OS}-${RUNNER_ARCH}" >&2; exit 1 ;;
+        esac
+        # Every release asset ships with <asset>.sha256 ("<hex>  <asset>", the
+        # sha256sum format). Verify the archive before extracting or running it.
+        asset="guard-${target}.tar.gz"
+        base="https://github.com/${GUARD_REPOSITORY}/releases/download/v${GUARD_VERSION}"
+        work="$(mktemp -d)"
+        echo "downloading ${base}/${asset}"
+        curl --fail --silent --show-error --location -o "${work}/${asset}" "${base}/${asset}"
+        curl --fail --silent --show-error --location -o "${work}/${asset}.sha256" "${base}/${asset}.sha256"
+        if command -v sha256sum >/dev/null 2>&1; then
+          (cd "$work" && sha256sum -c "${asset}.sha256")
+        else
+          (cd "$work" && shasum -a 256 -c "${asset}.sha256")
+        fi
+        tar -xz -C "${{ steps.dirs.outputs.bin_dir }}" -f "${work}/${asset}"
+
+    - name: Put guard on PATH
+      id: install
+      shell: bash
+      run: |
+        bin="${{ steps.dirs.outputs.bin_dir }}/${{ steps.dirs.outputs.exe }}"
+        chmod +x "$bin"
+        echo "${{ steps.dirs.outputs.bin_dir }}" >> "$GITHUB_PATH"
+        echo "path=$bin" >> "$GITHUB_OUTPUT"
+        "$bin" --version
+
+    - name: Export the Playwright project dir
+      id: e2e
+      shell: bash
+      env:
+        E2E_DIR: ${{ inputs.e2e-dir }}
+      run: |
+        dir="$(cd "$GITHUB_WORKSPACE" && realpath -m "$E2E_DIR")"
+        echo "GUARD_E2E_DIR=$dir" >> "$GITHUB_ENV"
+        echo "dir=$dir" >> "$GITHUB_OUTPUT"

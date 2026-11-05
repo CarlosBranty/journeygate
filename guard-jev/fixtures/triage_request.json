@@ -1,0 +1,74 @@
+{
+  "model": "jev-1.13.0",
+  "state": {
+    "summary": "Stock badge shows 'In stock' for sold-out products",
+    "description": "On the product page the badge ignores reservations and shows 'In stock' when every unit is reserved.",
+    "acceptance_criteria": ["A product with 0 available units shows 'Sold out'"],
+    "mentioned_modules": ["examples/demo-shop/src/products/stock.mjs"],
+    "blast_radius": "isolated"
+  },
+  "questions": {
+    "area": {
+      "type": "choice",
+      "instructions": "Which product area of the application does this ticket primarily change? Choose the single area whose description best matches where the requested change lives.",
+      "criteria": {
+        "account": "Sign-up, login, profile and order history.",
+        "catalog": "Product listing, search, product detail pages and stock display.",
+        "checkout": "Cart, payment form, order placement and confirmation."
+      }
+    },
+    "kind": {
+      "type": "choice",
+      "instructions": "What kind of change does this ticket ask for?",
+      "criteria": {
+        "bugfix": "Fixes behavior that is wrong today, without adding new capabilities.",
+        "minor_feature": "Adds a small, self-contained capability or option to an existing flow.",
+        "refactor": "Restructures code without changing user-visible behavior.",
+        "architecture": "Changes system structure: new services, data models, cross-cutting infrastructure, or how components communicate."
+      }
+    },
+    "risk": {
+      "type": "score",
+      "instructions": "How risky is it to implement this ticket incorrectly, for users and for the business?",
+      "criteria": [
+        "Trivial: copy, styling or configuration with no behavioral impact.",
+        "Low: a localized behavior change in one module, easy to verify and revert.",
+        "Medium: a behavior change across several modules, or one that touches persisted data.",
+        "High: changes a critical flow (payments, authentication, orders) or data shared by many features.",
+        "Critical: could cause data loss, a security exposure or a full outage if wrong."
+      ]
+    },
+    "clear_e2e_criteria": {
+      "type": "noul",
+      "instructions": "The ticket states acceptance criteria concrete enough that an end-to-end browser test can verify each of them through observable outcomes.",
+      "criteria": {
+        "true": "Every criterion names an observable result in the UI or the API that a test can assert.",
+        "false": "Criteria are missing, vague, or only describe implementation details."
+      }
+    },
+    "touches_money_or_security": {
+      "type": "noul",
+      "instructions": "Implementing this ticket changes how money is charged, refunded or displayed, or changes authentication, authorization, secrets or the handling of personal data.",
+      "criteria": {
+        "true": "The change affects payments, prices, refunds, login, permissions, tokens, secrets or personal data.",
+        "false": "The change does not touch money, access control, secrets or personal data."
+      }
+    },
+    "agent_suitable": {
+      "type": "noul",
+      "instructions": "A competent autonomous coding agent could implement this ticket correctly using only the ticket text and the repository, without asking a human any clarifying question.",
+      "criteria": {
+        "true": "The goal, scope and expected behavior are unambiguous and self-contained.",
+        "false": "The ticket needs product decisions, design input, access to external systems or clarification."
+      }
+    },
+    "changes_existing_flow": {
+      "type": "noul",
+      "instructions": "This ticket intentionally changes how an existing user-facing process works (its steps, rules or outcome), rather than fixing it or adding a separate new process.",
+      "criteria": {
+        "true": "An existing process will behave differently on purpose after this change.",
+        "false": "Existing processes keep working as they do today; the ticket fixes a defect or adds something new alongside them."
+      }
+    }
+  }
+}

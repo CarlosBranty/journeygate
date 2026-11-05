@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "mode": "shadow",
+  "agent_suitable_min": 0.8,
+  "risk_score_max": 1.0,
+  "money_or_security_max": 0.15,
+  "clear_criteria_min": 0.7,
+  "confidence_min": 0.75,
+  "existing_flow_max": 0.2,
+  "impact_threshold": 0.25
+}

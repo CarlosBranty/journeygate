@@ -1,0 +1,38 @@
+[package]
+name = "guard-server"
+description = "guard serve: webhooks, triage, impact API, gate results and the read-only dashboard."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+# Every adapter (Jev, Jira, GitHub/GitLab, Postgres, S3, the impact index) is
+# injected as a `guard_core::ports` trait object by the integrator (guard-cli
+# `serve`). guard-store is linked for the orchestrator's fact writers and
+# staleness job (memory.md), guard-impact for the staleness fan-out graph.
+[dependencies]
+askama = "=0.14.0"
+async-trait = "=0.1.89"
+axum = "=0.8.4"
+guard-core = { path = "../guard-core" }
+guard-impact = { path = "../guard-impact" }
+guard-store = { path = "../guard-store" }
+hex = "=0.4.3"
+hmac = "=0.12.1"
+http-body-util = "=0.1.3"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+sha2 = "=0.10.9"
+subtle = "=2.6.1"
+thiserror = "=2.0.17"
+tokio = { version = "=1.48.0", features = ["macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+tower-http = { version = "=0.6.6", features = ["trace"] }
+tracing = "=0.1.41"
+url = "=2.5.7"
+
+[dev-dependencies]
+guard-core = { path = "../guard-core", features = ["fakes"] }
+regex = "=1.12.2"
+tempfile = "=3.23.0"
+tower = { version = "=0.5.2", features = ["util"] }

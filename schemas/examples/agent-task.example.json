@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "run_id": "run-20261101-0001",
+  "ticket": "SHOP-101",
+  "role": "coder",
+  "attempt": 1,
+  "attempt_policy": { "max_attempts": 3 },
+  "repo": "acme/shop",
+  "base_commit": "0123456789abcdef0123456789abcdef01234567",
+  "summary": "Out-of-stock badge does not appear on the product card",
+  "acceptance_criteria": [
+    "A product with stock 0 shows the badge 'Out of stock'",
+    "The add-to-cart button is disabled for that product"
+  ],
+  "allowed_paths": {
+    "write": ["src/**"],
+    "deny": [
+      "tests/**",
+      "tests/features/SHOP-101.spec.ts",
+      "package.json",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lockb",
+      "target.toml",
+      "thresholds.toml",
+      "agents.toml",
+      "playwright.config.*",
+      ".github/**",
+      ".gitlab-ci.yml",
+      ".gitlab/**"
+    ]
+  },
+  "sealed_spec": {
+    "path": "tests/features/SHOP-101.spec.ts",
+    "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  "model": "anthropic/claude-sonnet-4-5",
+  "budget_usd": 5.0,
+  "timeout_secs": 1800,
+  "gateway": {
+    "base_url": "http://llm-gateway:4000",
+    "key_env": "GUARD_GATEWAY_KEY",
+    "via_gateway": true
+  },
+  "tools": ["guard_test", "guard_failure", "guard_history", "guard_map"],
+  "facts_brief": {
+    "text": "# Repository facts (orchestrator memory; verify items marked needs_review)\n- [12] journey:catalog catalog/stock-badge: Stock badge reads product.stock, not inventory.available\n",
+    "fact_ids": [12],
+    "truncated": false
+  },
+  "failure_context": null
+}

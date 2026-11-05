@@ -1,0 +1,130 @@
+{
+  "config": {},
+  "suites": [
+    {
+      "title": "tests/journeys/checkout/customer-card.spec.ts",
+      "file": "tests/journeys/checkout/customer-card.spec.ts",
+      "specs": [],
+      "suites": [
+        {
+          "title": "Checkout: customer pays by card",
+          "file": "tests/journeys/checkout/customer-card.spec.ts",
+          "specs": [
+            {
+              "title": "creates exactly one confirmed order",
+              "file": "tests/journeys/checkout/customer-card.spec.ts",
+              "line": 9,
+              "tags": [
+                "@journey:checkout.customer-card",
+                "@area:checkout",
+                "@smoke"
+              ],
+              "tests": [
+                {
+                  "projectName": "chromium",
+                  "status": "flaky",
+                  "results": [
+                    {
+                      "duration": 10000,
+                      "retry": 0,
+                      "status": "failed",
+                      "error": {
+                        "message": "expect(locator).toBeVisible() failed"
+                      }
+                    },
+                    {
+                      "duration": 8230,
+                      "retry": 1,
+                      "status": "passed"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "suites": []
+        }
+      ]
+    },
+    {
+      "title": "tests/journeys/billing/invoice-pdf.spec.ts",
+      "file": "tests/journeys/billing/invoice-pdf.spec.ts",
+      "suites": [],
+      "specs": [
+        {
+          "title": "issues the invoice",
+          "file": "tests/journeys/billing/invoice-pdf.spec.ts",
+          "line": 7,
+          "tags": [
+            "@journey:billing.invoice-pdf",
+            "@area:billing"
+          ],
+          "tests": [
+            {
+              "projectName": "chromium",
+              "status": "unexpected",
+              "results": [
+                {
+                  "duration": 1000,
+                  "retry": 0,
+                  "status": "failed",
+                  "error": {
+                    "message": "boom"
+                  }
+                },
+                {
+                  "duration": 1000,
+                  "retry": 1,
+                  "status": "failed",
+                  "error": {
+                    "message": "boom"
+                  }
+                },
+                {
+                  "duration": 1000,
+                  "retry": 2,
+                  "status": "failed",
+                  "error": {
+                    "message": "Timeout 30000ms exceeded.\nCall log"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests/smoke/healthz.spec.ts",
+      "file": "tests/smoke/healthz.spec.ts",
+      "suites": [],
+      "specs": [
+        {
+          "title": "app is healthy",
+          "file": "tests/smoke/healthz.spec.ts",
+          "line": 3,
+          "tags": [
+            "@smoke"
+          ],
+          "tests": [
+            {
+              "projectName": "chromium",
+              "status": "expected",
+              "results": [
+                {
+                  "duration": 40,
+                  "retry": 0,
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "duration": 20000
+  }
+}

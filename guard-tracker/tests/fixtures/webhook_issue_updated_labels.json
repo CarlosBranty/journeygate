@@ -1,0 +1,46 @@
+{
+  "timestamp": 1761829200000,
+  "webhookEvent": "jira:issue_updated",
+  "issue_event_type_name": "issue_generic",
+  "user": { "accountId": "557058:human-reporter", "displayName": "Ana QA" },
+  "issue": {
+    "id": "10007",
+    "key": "SHOP-7",
+    "fields": {
+      "summary": "Show 'Sold out' badge on products without stock",
+      "issuetype": { "name": "Story" },
+      "labels": ["type:minor_feature", "area:catalog", "lane:agent", "catalog"],
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "paragraph", "content": [ { "type": "text", "text": "Products with zero stock look buyable." } ] }
+        ]
+      },
+      "customfield_10050": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          { "type": "bulletList", "content": [
+            { "type": "listItem", "content": [ { "type": "paragraph", "content": [
+              { "type": "text", "text": "A product with 0 available units shows 'Sold out'" } ] } ] }
+          ] }
+        ]
+      }
+    }
+  },
+  "changelog": {
+    "id": "10400",
+    "items": [
+      {
+        "field": "labels",
+        "fieldtype": "jira",
+        "fieldId": "labels",
+        "from": null,
+        "fromString": "catalog",
+        "to": null,
+        "toString": "area:catalog catalog lane:agent type:minor_feature"
+      }
+    ]
+  }
+}

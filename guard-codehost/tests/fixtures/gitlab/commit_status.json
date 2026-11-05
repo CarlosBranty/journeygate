@@ -1,0 +1,1 @@
+{ "id": 93, "sha": "cccccccccccccccccccccccccccccccccccccccc", "ref": "feature/SHOP-456-checkout", "status": "success", "name": "guard", "target_url": "https://ci.example/1", "description": "guard: green" }

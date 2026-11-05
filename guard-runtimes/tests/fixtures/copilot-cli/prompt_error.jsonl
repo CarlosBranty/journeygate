@@ -1,0 +1,2 @@
+{"type":"session.start","data":{"sessionId":"c0p2"},"id":"e1","timestamp":"2026-11-01T10:00:00.000Z","parentId":null}
+{"type":"session.error","data":{"errorType":"authentication","message":"Copilot token missing","statusCode":401},"id":"e2","timestamp":"2026-11-01T10:00:00.500Z","parentId":null}

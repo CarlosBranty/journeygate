@@ -1,0 +1,11 @@
+<main id="main" hx-get="/guards" hx-trigger="every 30s" hx-swap="outerHTML">
+<h1>Guards</h1>
+<p>Last 50 PRs and MRs.</p>
+{% include "_notice.html" %}
+<table>
+<thead><tr><th>Run</th><th>PR</th><th>Verdict</th><th>Regressions</th><th>Modified journeys</th><th>Jira</th><th>Evidence</th></tr></thead>
+<tbody>
+{% for r in rows %}<tr><td>{{ r.run_id }}</td><td>{% if let Some(url) = r.pr_url %}<a href="{{ url }}">{{ r.pr_label }}</a>{% else %}{{ r.pr_label }}{% endif %}</td><td class="{{ r.verdict }}">{{ r.verdict }}</td><td>{{ r.regressions }}</td><td>{{ r.modified }}</td><td>{% for (key, link) in r.bugs %}{% if let Some(url) = link %}<a href="{{ url }}">{{ key }}</a>{% else %}{{ key }}{% endif %} {% endfor %}</td><td>{% if let Some(url) = r.report_url %}<a href="{{ url }}">Report</a> {% endif %}{% if let Some(url) = r.ci_url %}<a href="{{ url }}">Pipeline</a>{% endif %}</td></tr>
+{% endfor %}</tbody>
+</table>
+</main>

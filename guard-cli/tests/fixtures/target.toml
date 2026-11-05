@@ -1,0 +1,20 @@
+version = 1
+
+[app]
+name = "shop"
+base_url = "http://127.0.0.1:9"
+
+[testability]
+roles = ["customer"]
+
+[areas.checkout]
+description = "Cart, payment and order confirmation"
+paths = ["web/src/checkout/**"]
+
+[areas.billing]
+description = "Invoices"
+paths = ["services/billing/**"]
+
+[tracker]
+kind = "jira"
+ticket_pattern = 'SHOP-\d+'

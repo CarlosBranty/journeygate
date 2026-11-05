@@ -1,0 +1,11 @@
+<main id="main" hx-get="/catalog" hx-trigger="every 60s" hx-swap="outerHTML">
+<h1>Catalog</h1>
+{% include "_notice.html" %}
+{% for g in groups %}<h2>{{ g.area }}</h2>
+<table>
+<thead><tr><th>Journey</th><th>Title</th><th>Tags</th><th>Smoke</th><th>Quarantined</th><th>Last result</th></tr></thead>
+<tbody>
+{% for j in g.journeys %}<tr><td>{{ j.id }}</td><td>{{ j.title }}</td><td>{{ j.tags }}</td><td>{% if j.smoke %}yes{% else %}no{% endif %}</td><td>{% if j.quarantined %}yes{% else %}no{% endif %}</td><td class="{{ j.last }}">{{ j.last }}</td></tr>
+{% endfor %}</tbody>
+</table>
+{% endfor %}</main>

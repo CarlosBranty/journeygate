@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://api.github.com/repos/acme/shop/pulls/7",
+    "id": 7,
+    "html_url": "https://github.com/acme/shop/pull/7",
+    "number": 7,
+    "state": "open",
+    "title": "SHOP-1: old title",
+    "user": {"login": "guard-bot", "id": 1, "type": "Bot"},
+    "labels": [{"id": 1, "name": "agent", "color": "5319e7", "default": false}],
+    "draft": true,
+    "head": {"label": "acme:agent/SHOP-1", "ref": "agent/SHOP-1", "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    "base": {"label": "acme:trunk", "ref": "trunk", "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+    "auto_merge": null
+  }
+]

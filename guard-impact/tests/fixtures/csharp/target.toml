@@ -1,0 +1,10 @@
+version = 1
+
+[app]
+name = "csharp-fixture"
+languages = ["csharp"]
+base_url = "http://localhost:8080"
+
+[areas.billing]
+description = "Money and currencies"
+paths = ["Shop.Domain/Billing/**"]

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "journeys": [
+    {
+      "id": "checkout.customer-card",
+      "area": "checkout",
+      "title": "Customer pays by card and gets one confirmed order",
+      "impact_question": "This diff can directly or indirectly change how a signed-in customer adds a product to the cart, pays by card and receives an order confirmation.",
+      "paths": ["web/src/checkout/**", "services/orders/**", "services/payments/**"],
+      "smoke": true,
+      "quarantined": false
+    },
+    {
+      "id": "billing.invoice-pdf",
+      "area": "billing",
+      "title": "Invoice PDF is issued after a paid order",
+      "impact_question": "This diff can directly or indirectly change how an invoice is generated or delivered after an order is paid.",
+      "paths": ["services/billing/**"],
+      "smoke": false,
+      "quarantined": false
+    }
+  ]
+}

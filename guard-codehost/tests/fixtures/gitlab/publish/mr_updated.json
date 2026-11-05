@@ -1,0 +1,14 @@
+{
+  "id": 80,
+  "iid": 5,
+  "project_id": 3,
+  "title": "Draft: SHOP-1: add cart totals",
+  "state": "opened",
+  "target_branch": "trunk",
+  "source_branch": "agent/SHOP-1",
+  "labels": ["agent", "lane-a"],
+  "draft": true,
+  "work_in_progress": true,
+  "merge_when_pipeline_succeeds": false,
+  "web_url": "https://gitlab.example.com/acme/shop/-/merge_requests/5"
+}

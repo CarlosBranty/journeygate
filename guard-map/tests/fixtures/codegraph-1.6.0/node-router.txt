@@ -1,0 +1,15 @@
+**src/router.ts** — 10 symbols, used by 25 files: src/helper/ssg/utils.ts, src/hono-base.ts, src/middleware/combine/index.ts, src/middleware/method-not-allowed/index.ts, src/router/linear-router/router.ts, src/router/pattern-router/router.ts, src/router/reg-exp-router/matcher.ts, src/router/reg-exp-router/prepared-router.test.ts, +17 more
+
+**Symbols**
+- `METHOD_NAME_ALL` (constant) = 'ALL' as const — :9
+- `METHOD_NAME_ALL_LOWERCASE` (constant) = 'all' as const — :13
+- `METHODS` (constant) = ['get', 'post', 'put', 'delete', 'options', 'patch', 'query'] as const — :17
+- `MESSAGE_MATCHER_IS_ALREADY_BUILT` (constant) = 'Can not add a route since the matcher is already built.' — :21
+- `Router` (interface) — :29
+- `ParamIndexMap` (type_alias) — :57
+- `ParamStash` (type_alias) — :61
+- `Params` (type_alias) — :65
+- `Result` (type_alias) — :98
+- `UnsupportedPathError` (class) — :103
+
+> Drop `symbolsOnly` (or pass `offset`/`limit`) to read the source, like Read.

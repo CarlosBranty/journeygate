@@ -1,0 +1,168 @@
+# Dogfooding: this repository gates itself with guard, against examples/demo-shop.
+# Three steps (section 12 of docs/propuesta-arquitectura.md):
+#   plan     -> one plan per shard, balanced by historical durations
+#   shard    -> each matrix job starts its own app and runs its part (exit 0 on red tests)
+#   finalize -> merges the blob reports and decides the verdict (the only deciding step)
+name: guard
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guard-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # demo-shop's default test token; guard forwards GUARD_TEST_TOKEN to Playwright
+  # only when it is set, and the app started by `guard up` reads the same value.
+  GUARD_TEST_TOKEN: demo-token
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@aa7c1c80a07a27a84c0aa76d0cef0aad3830e330 # v2.7.8
+      - uses: ./ci/github-action
+        with:
+          version: source
+          e2e-dir: e2e-playwright
+      - name: Restore duration history
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .guard/durations.json
+          key: guard-durations-${{ github.run_id }}
+          restore-keys: guard-durations-
+      # The shard count lives here and in the shard matrix below; keep both equal
+      # (ci/tests/ci-config.test.mjs checks that the matrix is exactly 1..N).
+      - run: guard gate plan --shards 2 --out plan/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: shard-plan
+          path: plan/
+          if-no-files-found: error
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@aa7c1c80a07a27a84c0aa76d0cef0aad3830e330 # v2.7.8
+      - uses: ./ci/github-action
+        with:
+          version: source
+          e2e-dir: e2e-playwright
+      - uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        working-directory: e2e-playwright
+        run: pnpm exec playwright install --with-deps
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: shard-plan
+          path: plan/
+      - name: Start examples/demo-shop
+        run: guard up --timeout 120
+      - run: guard gate shard --index ${{ matrix.index }} --plan plan/
+      - name: Stop examples/demo-shop
+        if: always()
+        run: |
+          # Diagnostics: which process .guard/app.pid names, and the step's own group.
+          echo "app.pid=$(cat .guard/app.pid 2>/dev/null) identity=$(cat .guard/app.identity 2>/dev/null)"
+          ps -eo pid,pgid,ppid,lstart,cmd | grep -v ' ps -eo' || true
+          echo "step pid=$$ pgid=$(ps -o pgid= -p $$)"
+          guard down
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: blob-${{ matrix.index }}
+          path: e2e-playwright/blob-report/
+          if-no-files-found: ignore
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure()
+        with:
+          name: app-log-${{ matrix.index }}
+          path: .guard/app.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  finalize:
+    needs: shard
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0 # the baseline run (Phase 2+) needs the base commit
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@aa7c1c80a07a27a84c0aa76d0cef0aad3830e330 # v2.7.8
+      - uses: ./ci/github-action
+        with:
+          version: source
+          e2e-dir: e2e-playwright
+      - uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Restore duration history
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .guard/durations.json
+          key: guard-durations-${{ github.run_id }}
+          restore-keys: guard-durations-
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: blob-*
+          path: all-blobs/
+          merge-multiple: true
+      # A shard that failed (app never ready, Playwright crash) uploads no blob;
+      # merging only the remaining blobs could report green from partial results.
+      - name: Require every shard to succeed
+        if: needs.shard.result != 'success'
+        env:
+          SHARD_RESULT: ${{ needs.shard.result }}
+        run: |
+          echo "::error::shard jobs finished with '$SHARD_RESULT'; refusing to decide from partial results"
+          exit 1
+      - run: guard gate finalize --blobs all-blobs/
+        env:
+          RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Save duration history
+        if: always()
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .guard/durations.json
+          key: guard-durations-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: guard-report
+          path: |
+            e2e-playwright/playwright-report/
+            .guard/verdict.json
+          if-no-files-found: ignore
+          retention-days: 14

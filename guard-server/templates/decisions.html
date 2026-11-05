@@ -1,0 +1,11 @@
+<main id="main" hx-get="/decisions" hx-trigger="every 60s" hx-swap="outerHTML">
+<h1>Jev decisions</h1>
+{% include "_notice.html" %}
+<p>Agent-lane precision: <strong>{{ d.precision }}</strong> ({{ d.agent_confirmed }} of {{ d.agent_labeled }} labeled agent-lane decisions confirmed by a human).</p>
+<table>
+<thead><tr><th>Ticket</th><th>Decided at</th><th>Mode</th><th>Decided</th><th>Applied</th><th>Area</th><th>Human lane</th><th>Human area</th><th>Agrees</th></tr></thead>
+<tbody>
+{% for r in d.rows %}<tr><td>{{ r.ticket }}</td><td>{{ r.decided_at }}</td><td>{{ r.mode }}</td><td>{{ r.decided }}</td><td>{{ r.effective }}</td><td>{{ r.area }}</td><td>{{ r.human_lane }}</td><td>{{ r.human_area }}</td><td>{% match r.agrees %}{% when Some(true) %}yes{% when Some(false) %}no{% when None %}—{% endmatch %}</td></tr>
+{% endfor %}</tbody>
+</table>
+</main>

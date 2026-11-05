@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/target.schema.json",
+  "title": "target.toml",
+  "description": "Describes the application under test. Lives at the root of the app repository. Contract: docs/contracts/target-toml.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "app", "areas"],
+  "properties": {
+    "version": {
+      "description": "Schema version of this file. Only 1 exists.",
+      "const": 1
+    },
+    "app": {
+      "description": "How to identify, start, stop and reach the app. Phase 1.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "base_url"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "Short app identifier." },
+        "languages": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9+#-]*$" },
+          "default": [],
+          "description": "Lowercase language names. Impact-analysis plugins: typescript, javascript, python, go, rust, csharp, php; any other name (java, kotlin, ...) falls back to the [areas] globs. Phase 2+."
+        },
+        "start": { "type": "string", "minLength": 1, "description": "Shell command run by `guard up`. Optional: without it guard up only waits for readiness." },
+        "stop": { "type": "string", "minLength": 1, "description": "Shell command run by `guard down`. Optional: without it guard down is a no-op." },
+        "base_url": { "type": "string", "pattern": "^https?://[^/\\s]+(/[^\\s]*)?$", "description": "Local URL of the app, no trailing slash." },
+        "ready_path": { "$ref": "#/$defs/urlPath", "default": "/healthz", "description": "guard waits for HTTP 200 at base_url + ready_path." },
+        "preview_url": { "type": "string", "pattern": "^https?://\\S+$", "description": "Optional per-PR environment URL template; `{pr}` is replaced by the PR number." }
+      }
+    },
+    "services": {
+      "description": "Optional extra processes started by guard up after [app].start, in file order, and stopped by guard down in reverse order. TOML: [[services]]. Absent = single-process behavior. Names must be unique (checked by guard, not by this schema).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/service" }
+    },
+    "testability": {
+      "description": "The testability contract endpoints. Phase 1. The whole table is optional; every field has a default.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "login_path": { "$ref": "#/$defs/urlPath", "default": "/__test__/login" },
+        "seed_path": { "$ref": "#/$defs/urlPath", "default": "/__test__/seed" },
+        "token_env": { "$ref": "#/$defs/envName", "default": "GUARD_TEST_TOKEN", "description": "Name of the env var holding the test token, never the value." },
+        "roles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+          "default": [],
+          "description": "One storageState (.auth/<role>.json) per role."
+        },
+        "test_id_attribute": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "default": "data-testid" }
+      }
+    },
+    "areas": {
+      "description": "Business areas keyed by a snake_case identifier. At least one, at most 255.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 255,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+      "additionalProperties": { "$ref": "#/$defs/area" }
+    },
+    "hard_rules": {
+      "description": "Rules the decision engine can never override. Phase 3; parsed but unused in Phase 1.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "human_only_paths": { "$ref": "#/$defs/globs", "default": [] },
+        "max_fan_out_for_agent": { "type": "integer", "minimum": 1, "default": 10 }
+      }
+    },
+    "network": {
+      "description": "Third-party traffic control. Phase 1.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "blocked_domains": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^(\\*\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+$" },
+          "default": [],
+          "description": "Host patterns aborted in every test. A leading `*.` matches any subdomain and the apex."
+        },
+        "recorded_hosts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$" },
+          "default": [],
+          "description": "Hosts served from HAR recordings. Parsed in Phase 1, not yet enforced."
+        }
+      }
+    },
+    "evidence": {
+      "description": "Evidence capture. Phase 1.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "video": { "enum": ["on-first-retry", "off"], "default": "on-first-retry" },
+        "retention_days": { "type": "integer", "minimum": 1, "default": 14 },
+        "storage_url_env": { "$ref": "#/$defs/envName", "default": "GUARD_STORAGE_URL" }
+      }
+    },
+    "tracker": {
+      "description": "Issue tracker. Phase 2, except ticket_pattern, which guard test --affected already reads.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["jira"] },
+        "project": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "ticket_pattern": { "type": "string", "minLength": 1, "description": "Regex (Rust `regex` syntax) matched against the branch name; the first match is the ticket key." },
+        "require_ticket": { "enum": ["warn", "block"], "default": "warn" }
+      }
+    },
+    "code_host": {
+      "description": "Code host. Phase 1.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["github", "gitlab"] }
+      }
+    },
+    "server": {
+      "description": "Optional guard serve instance. Phase 2+.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^https?://\\S+$" }
+      }
+    }
+  },
+  "$defs": {
+    "urlPath": { "type": "string", "pattern": "^/\\S*$" },
+    "envName": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
+    "globs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "start"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$", "description": "Unique service name; also the file stem under .guard/services/." },
+        "cwd": {
+          "type": "string",
+          "pattern": "^(\\.|[A-Za-z0-9_@+][A-Za-z0-9_.@+-]*(/[A-Za-z0-9_@+][A-Za-z0-9_.@+-]*)*)$",
+          "default": ".",
+          "description": "Repo-relative directory the commands run in. Forward slashes, no leading slash, no trailing slash, no segment starting with a dot (so no .. escapes)."
+        },
+        "start": { "type": "string", "minLength": 1, "description": "Shell command run detached by guard up from cwd." },
+        "stop": { "type": "string", "minLength": 1, "description": "Optional shell command run in the foreground by guard down before the recorded process tree is terminated." },
+        "ready_url": { "type": "string", "pattern": "^https?://[^/\\s]+(/\\S*)?$", "description": "Optional. guard up waits for HTTP 200 here before starting the next service. Absent = do not wait." }
+      }
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "paths"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1, "description": "Plain-language criterion for the area." },
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Repo-relative globs (globset syntax, forward slashes)."
+        },
+        "sensitive": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

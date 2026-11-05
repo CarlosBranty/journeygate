@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/agent-task.schema.json",
+  "title": "/task/task.json",
+  "description": "Input of every agent runtime inside the sandbox (docs/contracts/agent-task.md). Serialized from guard_core::ports::AgentTask. Never contains a credential.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "run_id", "ticket", "role", "attempt", "attempt_policy", "repo", "base_commit", "summary",
+    "acceptance_criteria", "allowed_paths", "sealed_spec", "model", "budget_usd", "timeout_secs", "gateway", "tools",
+    "facts_brief", "failure_context"],
+  "$defs": {
+    "glob": { "type": "string", "minLength": 1 },
+    "envName": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "hex": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" }
+  },
+  "properties": {
+    "version": { "const": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "ticket": { "type": "string", "minLength": 1 },
+    "role": { "enum": ["qa", "coder"] },
+    "attempt": { "type": "integer", "minimum": 1, "maximum": 3 },
+    "attempt_policy": {
+      "type": "object", "additionalProperties": false, "required": ["max_attempts"],
+      "properties": { "max_attempts": { "type": "integer", "minimum": 1, "maximum": 3 } }
+    },
+    "repo": { "type": "string", "minLength": 1 },
+    "base_commit": { "$ref": "#/$defs/hex" },
+    "summary": { "type": "string" },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "allowed_paths": {
+      "type": "object", "additionalProperties": false, "required": ["write", "deny"],
+      "properties": {
+        "write": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/glob" } },
+        "deny": { "type": "array", "items": { "$ref": "#/$defs/glob" } }
+      }
+    },
+    "sealed_spec": {
+      "description": "Required for role coder, null for role qa (enforced by AgentTask::validate).",
+      "type": ["object", "null"], "additionalProperties": false, "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "model": { "type": "string", "minLength": 1 },
+    "budget_usd": { "type": "number", "exclusiveMinimum": 0 },
+    "timeout_secs": { "type": "integer", "minimum": 1 },
+    "gateway": {
+      "type": "object", "additionalProperties": false, "required": ["base_url", "key_env", "via_gateway"],
+      "properties": {
+        "base_url": { "type": "string", "pattern": "^https?://" },
+        "key_env": { "$ref": "#/$defs/envName" },
+        "via_gateway": { "type": "boolean" }
+      }
+    },
+    "tools": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "facts_brief": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["text", "fact_ids", "truncated"],
+      "properties": {
+        "text": { "type": "string", "maxLength": 4096, "description": "At most 4096 UTF-8 bytes (Rust enforces bytes; this schema checks characters)." },
+        "fact_ids": { "type": "array", "uniqueItems": true, "items": { "type": "integer", "minimum": 1 } },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "failure_context": { "type": ["string", "null"], "maxLength": 8000 }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guard.dev/schemas/thresholds.schema.json",
+  "title": "thresholds.toml",
+  "description": "Calibrated Gatekeeper thresholds and the triage mode. Contract: docs/contracts/thresholds-toml.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1, "default": 1 },
+    "mode": { "enum": ["shadow", "active"], "default": "shadow" },
+    "agent_suitable_min": { "$ref": "#/$defs/probability", "default": 0.8 },
+    "risk_score_max": { "type": "number", "minimum": 0, "maximum": 4, "default": 1.0 },
+    "money_or_security_max": { "$ref": "#/$defs/probability", "default": 0.15 },
+    "clear_criteria_min": { "$ref": "#/$defs/probability", "default": 0.7 },
+    "confidence_min": { "$ref": "#/$defs/probability", "default": 0.75 },
+    "existing_flow_max": { "$ref": "#/$defs/probability", "default": 0.2 },
+    "impact_threshold": { "$ref": "#/$defs/probability", "default": 0.25 }
+  },
+  "$defs": {
+    "probability": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

@@ -1,0 +1,37 @@
+[package]
+name = "guard-gui"
+description = "guard gui: a native desktop window over the guard binary (journeys, runs, services)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "guard-gui"
+path = "src/main.rs"
+
+[dependencies]
+# Native window (glow/OpenGL backend). No accesskit or web features: the GUI
+# stays light on a low-memory machine. `persistence` keeps the recent projects
+# and the layout between sessions.
+eframe = { version = "=0.33.3", default-features = false, features = ["default_fonts", "glow", "persistence", "wayland", "x11"] }
+# TableBuilder plus the image loader for inline failure screenshots.
+egui_extras = { version = "=0.33.3", default-features = false, features = ["file", "image"] }
+# Catalog and durations parsing are reused from guard, never re-implemented.
+guard-core = { path = "../guard-core" }
+image = { version = "=0.25.9", default-features = false, features = ["png"] }
+# The OS folder picker for "Open project...".
+rfd = "=0.16.0"
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+thiserror = "=2.0.17"
+
+# The explain API key lives only in the Windows Credential Manager
+# (CredWriteW/CredReadW/CredDeleteW). windows-sys 0.61.2 is already in the
+# lockfile (pulled by other crates), so this adds no new crate, only the
+# credential bindings feature; preferred over `keyring`, which would pull a
+# second windows-sys and more. WindowsAndMessaging reads the OS "animate
+# controls" accessibility setting (SystemParametersInfoW) for reduced motion.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_Security_Credentials", "Win32_UI_WindowsAndMessaging"] }

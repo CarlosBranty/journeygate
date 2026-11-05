@@ -1,0 +1,35 @@
+{
+  "model": "jev-1.13.0",
+  "answers": {
+    "area": {
+      "type": "choice",
+      "choice": "catalog",
+      "confidence": 0.91,
+      "probabilities": {"catalog": 0.91, "checkout": 0.06, "account": 0.03}
+    },
+    "kind": {
+      "type": "choice",
+      "choice": "bugfix",
+      "confidence": 0.94,
+      "probabilities": {"bugfix": 0.94, "minor_feature": 0.04, "refactor": 0.01, "architecture": 0.01}
+    },
+    "risk": {
+      "type": "score",
+      "score": 0.4,
+      "confidence": 0.88,
+      "legend": {
+        "0": "Trivial: copy, styling or configuration with no behavioral impact.",
+        "1": "Low: a localized behavior change in one module, easy to verify and revert.",
+        "2": "Medium: a behavior change across several modules, or one that touches persisted data.",
+        "3": "High: changes a critical flow (payments, authentication, orders) or data shared by many features.",
+        "4": "Critical: could cause data loss, a security exposure or a full outage if wrong."
+      },
+      "probabilities": {"0": 0.7, "1": 0.2, "2": 0.1, "3": 0.0, "4": 0.0}
+    },
+    "clear_e2e_criteria": {"type": "noul", "noul": 0.86},
+    "touches_money_or_security": {"type": "noul", "noul": 0.04},
+    "agent_suitable": {"type": "noul", "noul": 0.9},
+    "changes_existing_flow": {"type": "noul", "noul": 0.08}
+  },
+  "usage": {"input_tokens": 1834, "output_tokens": 61}
+}

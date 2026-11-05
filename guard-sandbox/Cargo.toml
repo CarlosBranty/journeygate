@@ -1,0 +1,21 @@
+[package]
+name = "guard-sandbox"
+description = "SandboxProvider on rootless Docker (gVisor where available) and the QA/Coder harness: red-first, sealing, diff allowlist, attempts."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+async-trait = "=0.1.89"
+guard-core = { path = "../guard-core" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+thiserror = "=2.0.17"
+tokio = { version = "=1.48.0", features = ["fs", "io-util", "process", "sync", "time"] }
+
+[dev-dependencies]
+guard-core = { path = "../guard-core", features = ["fakes"] }
+tempfile = "=3.23.0"
+tokio = { version = "=1.48.0", features = ["macros", "rt-multi-thread"] }

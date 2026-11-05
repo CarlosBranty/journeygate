@@ -1,0 +1,169 @@
+{
+  "rule": "Per-language rule of the C#/PHP extension (pre-registered 2026-11-01).\n\n    If guard-impact's metric-1 F1 OR its metric-2 recall is strictly lower than\n    CodeGraph's for that language, CodeGraph is better for it.",
+  "repos": {
+    "eshop": {
+      "language": "C#",
+      "ground_truth_tool": "roslyn 5.6.0.0 SemanticModel.GetSymbolInfo over SimpleNameSyntax",
+      "universe_files": 518,
+      "gt_edges": 1011,
+      "metric1": {
+        "guard_impact": {
+          "tp": 998,
+          "fp": 16,
+          "fn": 13,
+          "precision": 0.9842209072978304,
+          "recall": 0.9871414441147379,
+          "f1": 0.985679012345679
+        },
+        "codegraph": {
+          "tp": 692,
+          "fp": 653,
+          "fn": 319,
+          "precision": 0.5144981412639406,
+          "recall": 0.6844708209693373,
+          "f1": 0.5874363327674025
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 0.8457142857142856,
+          "precision": 0.9029214546861605,
+          "micro_recall": 0.9316239316239316,
+          "micro_precision": 0.9342857142857143,
+          "commits": 50,
+          "empty_predictions": 5
+        },
+        "codegraph": {
+          "recall": 0.6670783459322388,
+          "precision": 0.12718947784544482,
+          "micro_recall": 0.7037037037037037,
+          "micro_precision": 0.11061352440662786,
+          "commits": 50,
+          "empty_predictions": 4
+        },
+        "guard_impact_unbounded": {
+          "recall": 0.8457142857142856,
+          "precision": 0.885786067197832,
+          "micro_recall": 0.9316239316239316,
+          "micro_precision": 0.8427835051546392,
+          "commits": 50,
+          "empty_predictions": 5
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 0.8294117647058823,
+          "precision": 0.9827586206896551,
+          "micro_recall": 0.8072289156626506,
+          "micro_precision": 0.9710144927536232,
+          "commits": 34
+        },
+        "codegraph_cli": {
+          "recall": 0.0,
+          "precision": null,
+          "micro_recall": 0.0,
+          "micro_precision": null,
+          "commits": 34
+        }
+      },
+      "changed_files_mean": 7.66,
+      "gt_dependents_mean": 7.02,
+      "time": {
+        "guard_impact_index_ms_median": 1101,
+        "guard_impact_index_inproc_ms_median": 1009,
+        "codegraph_index_ms_median": 5594,
+        "guard_impact_query_us_median": 7.0,
+        "codegraph_sdk_query_us_median": 2520.5,
+        "codegraph_cli_affected_ms_median": 486.94025
+      }
+    },
+    "symfony-console": {
+      "language": "PHP",
+      "ground_truth_tool": "php 8.5.1 PhpToken::tokenize name resolution + composer psr-4/psr-0 + declared-symbol table",
+      "universe_files": 390,
+      "gt_edges": 1719,
+      "metric1": {
+        "guard_impact": {
+          "tp": 1719,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "codegraph": {
+          "tp": 1679,
+          "fp": 262,
+          "fn": 40,
+          "precision": 0.8650180319422978,
+          "recall": 0.9767306573589296,
+          "f1": 0.9174863387978142
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "codegraph": {
+          "recall": 1.0,
+          "precision": 0.8116138903605638,
+          "micro_recall": 1.0,
+          "micro_precision": 0.7999781516277037,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "guard_impact_unbounded": {
+          "recall": 1.0,
+          "precision": 0.6607192182980445,
+          "micro_recall": 1.0,
+          "micro_precision": 0.6167775625368483,
+          "commits": 50,
+          "empty_predictions": 0
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 49
+        },
+        "codegraph_cli": {
+          "recall": 0.0,
+          "precision": null,
+          "micro_recall": 0.0,
+          "micro_precision": null,
+          "commits": 49
+        }
+      },
+      "changed_files_mean": 2.56,
+      "gt_dependents_mean": 146.46,
+      "time": {
+        "guard_impact_index_ms_median": 1270,
+        "guard_impact_index_inproc_ms_median": 1149,
+        "codegraph_index_ms_median": 6590,
+        "guard_impact_query_us_median": 184.5,
+        "codegraph_sdk_query_us_median": 14806.05,
+        "codegraph_cli_affected_ms_median": 497.35615
+      }
+    }
+  },
+  "decisions": {
+    "csharp": {
+      "decision": "guard_impact_better_for_csharp",
+      "guard_impact_lower_f1": false,
+      "guard_impact_lower_recall": false
+    },
+    "php": {
+      "decision": "guard_impact_better_for_php",
+      "guard_impact_lower_f1": false,
+      "guard_impact_lower_recall": false
+    }
+  }
+}

@@ -1,0 +1,122 @@
+# Publishes the prebuilt guard binaries on every v* tag. The asset names are
+# the ones ci/github-action/action.yml and install/install.{sh,ps1} download:
+# guard-<target>.tar.gz (the binary at the archive root) and
+# guard-<target>.tar.gz.sha256 ("<hex>  <asset>", the sha256sum format).
+# ci/tests/release.test.mjs keeps the three in agreement.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: x86_64-apple-darwin
+            os: macos-13
+          - target: aarch64-apple-darwin
+            os: macos-14
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check the tag against the crate version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          crate="$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)"
+          if [ "$tag" != "$crate" ]; then
+            echo "error: tag ${GITHUB_REF_NAME} does not match the workspace version ${crate} in Cargo.toml" >&2
+            exit 1
+          fi
+
+      # Every runner builds its own native target, so no cross toolchain is needed.
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: |
+          rustup toolchain install
+          rustup target add ${{ matrix.target }}
+
+      - name: Build guard
+        run: cargo build -p guard-cli --bin guard --release --locked --target ${{ matrix.target }}
+
+      - name: Package the archive and its checksum
+        id: package
+        run: |
+          exe=guard
+          if [ "$RUNNER_OS" = "Windows" ]; then exe=guard.exe; fi
+          asset="guard-${{ matrix.target }}.tar.gz"
+          mkdir -p dist
+          tar -czf "${asset}" -C "target/${{ matrix.target }}/release" "${exe}"
+          if command -v sha256sum >/dev/null 2>&1; then
+            hash="$(sha256sum "${asset}" | cut -d' ' -f1)"
+          else
+            hash="$(shasum -a 256 "${asset}" | cut -d' ' -f1)"
+          fi
+          # Written by hand: sha256sum on Windows marks binary mode ("<hex> *<file>").
+          # Every runner writes the same "<hex>  <asset>" line.
+          printf '%s  %s\n' "${hash}" "${asset}" > "${asset}.sha256"
+          mv "${asset}" "${asset}.sha256" dist/
+          cat "dist/${asset}.sha256"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: guard-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write   # gh release create
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: guard-*
+          path: dist/
+          merge-multiple: true
+      - name: Verify every checksum
+        working-directory: dist
+        run: |
+          count=0
+          for sum in *.sha256; do
+            sha256sum -c "$sum"
+            count=$((count + 1))
+          done
+          if [ "$count" -ne 5 ]; then
+            echo "error: expected 5 assets, found ${count}" >&2
+            exit 1
+          fi
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag --generate-notes --title "guard $GITHUB_REF_NAME" $prerelease

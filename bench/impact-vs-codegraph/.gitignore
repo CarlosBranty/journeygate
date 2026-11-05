@@ -1,0 +1,7 @@
+/target/
+/results/gi_*.json
+/results/gt_*.json
+/results/cg_*.json
+__pycache__/
+/gt_csharp/bin/
+/gt_csharp/obj/

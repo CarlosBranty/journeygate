@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "copilot",
+    "-p",
+    "You are the coder agent of guard. You work non-interactively in /workspace; nobody will answer questions.\nInstructions for this repository are in /agents/AGENTS.md and /agents/skills (read-only). The full task is /task/task.json.\n\n## Rules\n- Make the sealed spec pass by changing application code only.\n- Never edit tests, the sealed spec, lockfiles, CI or guard configuration; the diff is checked against the paths below.\n- Paths are repo-relative globs; deny wins over write.\n- Write: src/**\n- Deny: tests/**, tests/features/SHOP-101.spec.ts, package.json, package-lock.json, pnpm-lock.yaml, yarn.lock, bun.lockb, target.toml, thresholds.toml, agents.toml, playwright.config.*, .github/**, .gitlab-ci.yml, .gitlab/**\n- Sealed spec (read-only): tests/features/SHOP-101.spec.ts\n\n## Tools\nguard_test, guard_failure, guard_history, guard_map\n\n## Memory\n# Repository facts (orchestrator memory; verify items marked needs_review)\n- [12] journey:catalog catalog/stock-badge: Stock badge reads product.stock, not inventory.available\n\n## Ticket SHOP-101 (acme/shop)\nOut-of-stock badge does not appear on the product card\n\n## Acceptance criteria\n- A product with stock 0 shows the badge 'Out of stock'\n- The add-to-cart button is disabled for that product\n\n## Attempt\n1 of 3\n",
+    "--output-format=json",
+    "--model=claude-sonnet-4.5",
+    "--no-ask-user",
+    "--no-auto-update",
+    "--disable-builtin-mcps",
+    "--disable-client-telemetry",
+    "--no-custom-instructions",
+    "--allow-tool=shell,write,read,guard",
+    "--deny-tool=url,memory",
+    "--secret-env-vars=COPILOT_GITHUB_TOKEN",
+    "--log-level=error",
+    "--log-dir=/task/copilot/logs",
+    "--additional-mcp-config=@/task/copilot/mcp.json"
+  ],
+  "env": {
+    "COPILOT_AUTO_UPDATE": "false",
+    "COPILOT_CUSTOM_INSTRUCTIONS_DIRS": "/agents",
+    "COPILOT_HOME": "/task/copilot"
+  },
+  "workdir": "/workspace",
+  "stdin": null,
+  "files": [
+    {
+      "path": "/task/copilot/mcp.json",
+      "contents": "{\n  \"mcpServers\": {\n    \"guard\": {\n      \"args\": [\n        \"mcp\"\n      ],\n      \"command\": \"guard\",\n      \"tools\": [\n        \"guard_test\",\n        \"guard_failure\",\n        \"guard_history\",\n        \"guard_map\"\n      ],\n      \"type\": \"local\"\n    }\n  }\n}\n"
+    }
+  ]
+}

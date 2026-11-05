@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>guard · {{ title }}</title>
+<script src="{{ htmx_path }}" integrity="{{ htmx_sri }}"></script>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;color:#1d1d1f;background:#fafafa}
+header{display:flex;gap:1rem;align-items:center;padding:.75rem 1.5rem;background:#1d1d1f;color:#fff;flex-wrap:wrap}
+header a{color:#fff;text-decoration:none}
+header .who{margin-left:auto;opacity:.7}
+main{padding:1rem 1.5rem}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border-bottom:1px solid #e5e5e5;padding:.4rem .6rem;text-align:left;vertical-align:top}
+.green{color:#137333}.red{color:#b3261e}.failed{color:#b3261e}.flaky{color:#a15c00}
+.notice{padding:.75rem;background:#fff4e5;border:1px solid #f0c36d}
+</style>
+</head>
+<body>
+<header>
+<strong>guard</strong>
+<a href="/">Overview</a>
+<a href="/catalog">Catalog</a>
+<a href="/coverage">Coverage</a>
+<a href="/flaky">Flaky</a>
+<a href="/durations">Durations</a>
+<a href="/guards">Guards</a>
+<a href="/decisions">Decisions</a>
+<a href="/agents">Agents</a>
+<span class="who">{{ login }}</span>
+</header>
+{{ main|safe }}
+</body>
+</html>

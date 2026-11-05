@@ -1,0 +1,87 @@
+{
+  "config": { "rootDir": "/work/e2e-playwright" },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "specs": [
+        {
+          "title": "authenticate as customer",
+          "file": "tests/setup/auth.setup.ts",
+          "line": 4,
+          "tags": [],
+          "tests": [
+            { "projectName": "setup", "status": "expected", "results": [{ "duration": 38, "retry": 0, "status": "passed", "attachments": [] }] }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "customer-card.spec.ts",
+      "specs": [],
+      "suites": [
+        {
+          "title": "Customer pays by card",
+          "specs": [
+            {
+              "title": "creates exactly one confirmed order",
+              "file": "tests/journeys/checkout/customer-card.spec.ts",
+              "line": 9,
+              "tags": ["journey:checkout.customer-card", "area:checkout", "smoke"],
+              "tests": [
+                { "projectName": "chromium", "status": "expected", "results": [{ "duration": 1164, "retry": 0, "status": "passed", "attachments": [] }] }
+              ]
+            },
+            {
+              "title": "a declined card creates no order",
+              "file": "tests/journeys/checkout/customer-card.spec.ts",
+              "line": 30,
+              "tags": ["@journey:checkout.customer-card", "@area:checkout", "@smoke"],
+              "tests": [
+                {
+                  "projectName": "chromium",
+                  "status": "unexpected",
+                  "results": [
+                    {
+                      "duration": 5751,
+                      "retry": 0,
+                      "status": "failed",
+                      "error": { "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText() failed" },
+                      "attachments": [
+                        { "name": "screenshot", "contentType": "image/png", "path": "/work/e2e-playwright/test-results/declined/test-failed-1.png" },
+                        { "name": "trace", "contentType": "application/zip", "path": "test-results/declined/trace.zip" },
+                        { "name": "inline", "contentType": "text/plain", "body": "aGVsbG8=" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "invoice-pdf.spec.ts",
+      "specs": [
+        {
+          "title": "issues the invoice",
+          "file": "tests/journeys/billing/invoice-pdf.spec.ts",
+          "line": 5,
+          "tags": ["journey:billing.invoice-pdf", "area:billing"],
+          "tests": [
+            {
+              "projectName": "chromium",
+              "status": "flaky",
+              "results": [
+                { "duration": 900, "retry": 0, "status": "failed", "error": { "message": "Timeout" }, "attachments": [] },
+                { "duration": 700, "retry": 1, "status": "passed", "attachments": [{ "name": "video", "contentType": "video/webm", "path": "/work/e2e-playwright/test-results/invoice/video.webm" }] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": { "duration": 7200.5 }
+}

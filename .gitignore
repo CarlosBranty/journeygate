@@ -1,0 +1,27 @@
+# Rust
+target/
+
+# Node
+node_modules/
+
+# Playwright output
+test-results/
+playwright-report/
+blob-report/
+results/
+!bench/impact-vs-codegraph/results/
+# guard-gui's `results` module (unit tests live in src/results/tests.rs)
+!guard-gui/src/results/
+.auth/
+
+# guard local state (durations, verdict)
+.guard/
+# ...except the committed goldens of `guard agents sync`, which render into .guard/
+!guard-agents/tests/golden/**/.guard/
+
+# Local tooling caches
+.atl/
+.tmp-e2e/
+
+# Compose secrets for deploy/ (template: deploy/env.example)
+deploy/.env

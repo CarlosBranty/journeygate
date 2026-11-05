@@ -1,0 +1,14 @@
+{
+  "name": "demo-shop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference app implementing the testability contract (docs/contracts/demo-app.md).",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-timeout=20000 \"test/*.test.mjs\""
+  }
+}

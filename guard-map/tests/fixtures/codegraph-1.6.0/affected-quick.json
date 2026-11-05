@@ -1,0 +1,9 @@
+{
+  "changedFiles": [
+    "src/preset/quick.ts"
+  ],
+  "affectedTests": [
+    "src/preset/quick.test.ts"
+  ],
+  "totalDependentsTraversed": 1
+}

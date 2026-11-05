@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "status": "completed",
+  "summary": "Render the badge when stock is 0 and disable the add-to-cart button",
+  "usage": {
+    "input_tokens": 182340,
+    "output_tokens": 6120,
+    "cached_input_tokens": 151200,
+    "cache_creation_input_tokens": 18400
+  },
+  "cost_usd": 0.4213,
+  "steps": 14,
+  "memory_proposals": [
+    {
+      "topic_key": "catalog/stock-source",
+      "body": "ProductCard reads stock from product.stock; inventory.available is stale on the listing page",
+      "evidence": "src/catalog/ProductCard.tsx"
+    }
+  ]
+}

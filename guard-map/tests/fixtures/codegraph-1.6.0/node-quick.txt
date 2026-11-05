@@ -1,0 +1,7 @@
+**src/preset/quick.ts** — 2 symbols, used by 1 file: src/preset/quick.test.ts
+
+**Symbols**
+- `Hono` (class) — :13
+- `constructor` (method) (options: HonoOptions<E> = {}) — :18
+
+> Drop `symbolsOnly` (or pass `offset`/`limit`) to read the source, like Read.

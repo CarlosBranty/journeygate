@@ -1,0 +1,9 @@
+{
+    "autoload": {
+        "psr-4": { "Acme\\": "src/" },
+        "psr-0": { "Legacy_": "lib/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Acme\Tests\\": "tests/" }
+    }
+}

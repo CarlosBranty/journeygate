@@ -1,0 +1,10 @@
+version = 1
+
+[app]
+name = "java-fixture"
+languages = ["java"]
+base_url = "http://localhost:8080"
+
+[areas.shop]
+description = "Shop"
+paths = ["src/main/java/shop/**"]

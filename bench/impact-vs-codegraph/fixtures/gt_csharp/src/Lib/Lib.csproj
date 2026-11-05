@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\Linked.cs" Link="Linked.cs" />
+    <Compile Remove="Excluded.cs" />
+  </ItemGroup>
+</Project>

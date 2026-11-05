@@ -1,0 +1,24 @@
+{
+  "url": "https://api.github.com/repos/acme/shop/pulls/12",
+  "id": 1296269,
+  "number": 12,
+  "state": "open",
+  "title": "Fix cart totals for SHOP-999",
+  "html_url": "https://github.com/acme/shop/pull/12",
+  "user": { "login": "dev", "id": 1, "type": "User" },
+  "body": "Fixes the totals.",
+  "merged": false,
+  "head": {
+    "label": "acme:SHOP-123-fix-cart",
+    "ref": "SHOP-123-fix-cart",
+    "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "repo": { "full_name": "acme/shop" }
+  },
+  "base": {
+    "label": "acme:main",
+    "ref": "main",
+    "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "repo": { "full_name": "acme/shop" }
+  },
+  "changed_files": 3
+}

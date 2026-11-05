@@ -1,0 +1,18 @@
+{
+  "id": 9001,
+  "iid": 7,
+  "project_id": 42,
+  "title": "Draft: SHOP-77 checkout copy",
+  "state": "opened",
+  "target_branch": "main",
+  "source_branch": "feature/SHOP-456-checkout",
+  "author": { "id": 3, "username": "dev", "name": "Dev" },
+  "sha": "cccccccccccccccccccccccccccccccccccccccc",
+  "web_url": "https://gitlab.com/acme/platform/shop/-/merge_requests/7",
+  "references": { "short": "!7", "relative": "!7", "full": "acme/platform/shop!7" },
+  "diff_refs": {
+    "base_sha": "dddddddddddddddddddddddddddddddddddddddd",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccc",
+    "start_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
+}

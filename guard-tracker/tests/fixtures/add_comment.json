@@ -1,0 +1,6 @@
+{
+  "id": "10500",
+  "self": "https://acme.atlassian.net/rest/api/3/issue/10210/comment/10500",
+  "author": { "accountId": "5b10ac8d82e05b22cc7d4ef5", "displayName": "guard bot" },
+  "created": "2026-10-30T12:00:00.000+0000"
+}

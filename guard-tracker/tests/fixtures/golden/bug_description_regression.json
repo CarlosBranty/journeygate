@@ -1,0 +1,47 @@
+{
+  "type": "doc",
+  "version": 1,
+  "content": [
+    { "type": "heading", "attrs": { "level": 3 }, "content": [
+      { "type": "text", "text": "Regression in checkout.customer-card" }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Test", "marks": [{ "type": "strong" }] },
+      { "type": "text", "text": " " },
+      { "type": "text", "text": "chromium::tests/journeys/checkout/customer-card.spec.ts::Checkout > pays", "marks": [{ "type": "code" }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Location", "marks": [{ "type": "strong" }] },
+      { "type": "text", "text": " " },
+      { "type": "text", "text": "tests/journeys/checkout/customer-card.spec.ts:21", "marks": [{ "type": "code" }] }
+    ] },
+    { "type": "codeBlock", "content": [
+      { "type": "text", "text": "Timeout 5000ms exceeded waiting for order 9f8e7d6c5b4a" }
+    ] },
+    { "type": "bulletList", "content": [
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "attempt 1: failed (1000 ms)" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "attempt 2: failed (1100 ms)" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "attempt 3: failed (1200 ms)" }] }] },
+      { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "base commit 0123456789ab: passes (regression)" }] }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Links", "marks": [{ "type": "strong" }] },
+      { "type": "text", "text": " " },
+      { "type": "text", "text": "Trace", "marks": [{ "type": "link", "attrs": { "href": "https://trace.playwright.dev/?trace=https%3A%2F%2Fminio" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "Video", "marks": [{ "type": "link", "attrs": { "href": "https://minio.acme.test/video.webm" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "Report", "marks": [{ "type": "link", "attrs": { "href": "https://minio.acme.test/report/index.html" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "Pipeline", "marks": [{ "type": "link", "attrs": { "href": "https://github.com/acme/shop/actions/runs/1" } }] },
+      { "type": "text", "text": " · " },
+      { "type": "text", "text": "PR", "marks": [{ "type": "link", "attrs": { "href": "https://github.com/acme/shop/pull/12" } }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "Seed 42 · commit abcdef123456 · run 12345-1" }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "If the flow change is intentional, update this journey in the same PR." }
+    ] }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/journeys.schema.json",
+  "version": 1,
+  "journeys": [
+    {
+      "id": "checkout.customer-card",
+      "area": "checkout",
+      "title": "Customer pays by card and gets one confirmed order",
+      "impact_question": "This diff can directly or indirectly change how a signed-in customer adds a product to the cart, pays by card and receives an order confirmation.",
+      "paths": ["examples/demo-shop/src/checkout/**", "examples/demo-shop/src/cart/**"],
+      "smoke": true,
+      "quarantined": false
+    },
+    {
+      "id": "account.customer-session",
+      "area": "account",
+      "title": "Signed-in customer sees their account; visitors are asked to sign in",
+      "impact_question": "This diff can directly or indirectly change how the test login creates a session or how the account page shows the signed-in customer.",
+      "paths": ["examples/demo-shop/src/account/**"],
+      "smoke": false,
+      "quarantined": false
+    }
+  ]
+}

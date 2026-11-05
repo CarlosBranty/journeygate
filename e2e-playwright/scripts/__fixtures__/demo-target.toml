@@ -1,0 +1,27 @@
+# Copy of the demo target.toml from docs/contracts/demo-app.md, used to run
+# catalog-lint before the repo-root target.toml exists.
+version = 1
+
+[app]
+name = "demo-shop"
+languages = ["javascript"]
+start = "node examples/demo-shop/server.mjs"
+base_url = "http://localhost:3000"
+ready_path = "/healthz"
+
+[testability]
+token_env = "GUARD_TEST_TOKEN"
+roles = ["customer"]
+
+[areas.checkout]
+description = "Cart, payment and order confirmation"
+paths = ["examples/demo-shop/src/checkout/**", "examples/demo-shop/src/cart/**"]
+sensitive = true
+
+[areas.catalog]
+description = "Product pages and stock display"
+paths = ["examples/demo-shop/src/products/**"]
+
+[areas.account]
+description = "Test login, session and account page"
+paths = ["examples/demo-shop/src/account/**"]

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": {
+    "tests/journeys/checkout/customer-card.spec.ts": {
+      "duration_ms": 12450,
+      "samples": 7
+    },
+    "tests/journeys/billing/invoice-pdf.spec.ts": {
+      "duration_ms": 9800,
+      "samples": 3
+    },
+    "tests/smoke/healthz.spec.ts": {
+      "duration_ms": 50,
+      "samples": 2
+    }
+  }
+}

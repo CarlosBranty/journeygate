@@ -1,0 +1,24 @@
+[workspace]
+resolver = "3"
+members = [
+    "guard-core",
+    "guard-cli",
+    "guard-jev",
+    "guard-impact",
+    "guard-tracker",
+    "guard-codehost",
+    "guard-store",
+    "guard-server",
+    "guard-mcp",
+    "guard-sandbox",
+    "guard-runtimes",
+    "guard-agents",
+    "guard-map",
+    "guard-gui",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+version = "0.1.0"

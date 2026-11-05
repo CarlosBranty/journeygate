@@ -1,0 +1,7 @@
+{
+  "timestamp": 1761829200000,
+  "webhookEvent": "jira:issue_updated",
+  "user": { "accountId": "557058:human-reporter" },
+  "issue": { "id": "10007", "key": "SHOP-7", "fields": { "summary": "New summary", "labels": [] } },
+  "changelog": { "id": "10401", "items": [ { "field": "summary", "fieldId": "summary", "fromString": "Old", "toString": "New summary" } ] }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "e2e-agentdev",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@9.1.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test:schemas": "node --test \"schemas/*.test.mjs\""
+  }
+}

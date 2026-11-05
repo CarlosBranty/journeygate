@@ -1,0 +1,3 @@
+{"type":"thread.started","thread_id":"t3"}
+{"type":"turn.started"}
+{"type":"turn.failed","error":{"message":"unexpected status 400 Bad Request: {\"error\":{\"message\":\"Budget has been exceeded! Current cost: 1.0213, Max budget: 1.0\",\"type\":\"budget_exceeded\",\"param\":null,\"code\":\"400\"}}"}}

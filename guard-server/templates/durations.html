@@ -1,0 +1,16 @@
+<main id="main" hx-get="/durations" hx-trigger="every 30s" hx-swap="outerHTML">
+<h1>Durations</h1>
+{% include "_notice.html" %}
+<h2>Gate test time</h2>
+<table><thead><tr><th>Run</th><th>Total test time</th></tr></thead><tbody>
+{% for r in d.gates %}<tr><td>{{ r.name }}</td><td>{{ r.value }}</td></tr>
+{% endfor %}</tbody></table>
+<h2>Slowest spec files</h2>
+<table><thead><tr><th>File</th><th>Average per run</th></tr></thead><tbody>
+{% for r in d.files %}<tr><td>{{ r.name }}</td><td>{{ r.value }}</td></tr>
+{% endfor %}</tbody></table>
+<h2>Most expensive tests</h2>
+<table><thead><tr><th>Test</th><th>Average</th></tr></thead><tbody>
+{% for r in d.tests %}<tr><td>{{ r.name }}</td><td>{{ r.value }}</td></tr>
+{% endfor %}</tbody></table>
+</main>

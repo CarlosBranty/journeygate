@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://e2e-agentdev.dev/schemas/engram-export.schema.json",
+  "title": "Engram export (format 0.2.0) produced from memory_facts",
+  "description": "Subset of Engram's ExportData that `engram import <file.json>` reads (docs/contracts/memory.md, 'Engram export'). Field names and the version string were checked against github.com/Gentleman-Programming/engram internal/store/store.go (ExportData, Session, Observation, Prompt; currentExportVersion = \"0.2.0\") on 2026-11-01. Our export emits no prompts, relations or tombstones. The mapping of fact sources to Engram observation types is ours and provisional.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "exported_at", "sessions", "observations", "prompts"],
+  "$defs": {
+    "ts": { "type": "string", "minLength": 1 },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "project", "directory", "started_at"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^guard-" },
+        "project": { "type": "string", "minLength": 1 },
+        "ownership_mode": { "type": "string" },
+        "directory": { "type": "string" },
+        "started_at": { "$ref": "#/$defs/ts" },
+        "ended_at": { "$ref": "#/$defs/ts" },
+        "summary": { "type": "string" }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sync_id", "session_id", "type", "title", "content", "scope", "revision_count", "duplicate_count", "created_at", "updated_at"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "sync_id": { "type": "string", "pattern": "^guard-fact-[0-9]+$" },
+        "session_id": { "type": "string", "pattern": "^guard-" },
+        "type": { "enum": ["discovery", "bugfix", "decision", "pattern"] },
+        "title": { "type": "string", "minLength": 1 },
+        "content": { "type": "string", "minLength": 1 },
+        "tool_name": { "type": "string" },
+        "project": { "type": "string" },
+        "scope": { "enum": ["project", "personal"] },
+        "topic_key": { "type": "string", "pattern": "^guard/" },
+        "revision_count": { "type": "integer", "minimum": 1 },
+        "duplicate_count": { "type": "integer", "minimum": 1 },
+        "last_seen_at": { "$ref": "#/$defs/ts" },
+        "review_after": { "$ref": "#/$defs/ts" },
+        "superseded_by_sync_id": { "type": "string", "pattern": "^guard-fact-[0-9]+$" },
+        "created_at": { "$ref": "#/$defs/ts" },
+        "updated_at": { "$ref": "#/$defs/ts" },
+        "deleted_at": { "$ref": "#/$defs/ts" }
+      }
+    }
+  },
+  "properties": {
+    "version": { "const": "0.2.0" },
+    "exported_at": { "$ref": "#/$defs/ts" },
+    "sessions": { "type": "array", "items": { "$ref": "#/$defs/session" } },
+    "observations": { "type": "array", "items": { "$ref": "#/$defs/observation" } },
+    "prompts": { "type": "array", "maxItems": 0 }
+  }
+}

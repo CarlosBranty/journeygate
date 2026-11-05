@@ -1,0 +1,21 @@
+{
+  "id": 84,
+  "iid": 9,
+  "project_id": 3,
+  "title": "Draft: SHOP-1: add cart totals",
+  "description": "<!-- guard:agent-pr SHOP-1 -->",
+  "state": "opened",
+  "target_branch": "trunk",
+  "source_branch": "agent/SHOP-1",
+  "author": {"id": 1, "username": "guard-bot"},
+  "labels": ["agent", "lane-a"],
+  "draft": true,
+  "work_in_progress": true,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "checking",
+  "detailed_merge_status": "checking",
+  "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "squash": false,
+  "web_url": "https://gitlab.example.com/acme/shop/-/merge_requests/9",
+  "references": {"short": "!9", "relative": "!9", "full": "acme/shop!9"}
+}

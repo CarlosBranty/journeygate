@@ -1,0 +1,4 @@
+[
+  { "sha": "1", "filename": "src/cart/totals.ts", "status": "modified", "additions": 4, "deletions": 1, "changes": 5 },
+  { "sha": "2", "filename": "src/cart/new-name.ts", "previous_filename": "src/cart/old-name.ts", "status": "renamed", "additions": 0, "deletions": 0, "changes": 0 }
+]

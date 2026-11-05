@@ -1,0 +1,21 @@
+<main id="main" hx-get="/" hx-trigger="every 30s" hx-swap="outerHTML">
+<h1>Overview</h1>
+{% include "_notice.html" %}
+<h2>Last 10 gates</h2>
+<table>
+<thead><tr><th>Run</th><th>Received</th><th>Repo</th><th>PR</th><th>Ticket</th><th>Verdict</th><th>Regressions</th></tr></thead>
+<tbody>
+{% for r in rows %}<tr><td>{{ r.run_id }}</td><td>{{ r.received_at }}</td><td>{{ r.repo }}</td><td>{{ r.pr_label }}</td><td>{{ r.ticket }}</td><td class="{{ r.verdict }}">{{ r.verdict }}</td><td>{{ r.regressions }}</td></tr>
+{% endfor %}</tbody>
+</table>
+<h2>Views</h2>
+<ul>
+<li><a href="/catalog">Catalog</a></li>
+<li><a href="/coverage">Coverage</a></li>
+<li><a href="/flaky">Flaky</a></li>
+<li><a href="/durations">Durations</a></li>
+<li><a href="/guards">Guards</a></li>
+<li><a href="/decisions">Decisions</a></li>
+<li><a href="/agents">Agents</a></li>
+</ul>
+</main>

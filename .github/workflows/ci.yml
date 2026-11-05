@@ -1,0 +1,72 @@
+# Fast checks on every push and PR: Rust (fmt, clippy, tests) and Node (unit tests).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@aa7c1c80a07a27a84c0aa76d0cef0aad3830e330 # v2.7.8
+      # guard-sandbox's quality_node tests run assets/spec-quality.mjs, which
+      # needs Node 24 and the assets' own dependencies (TypeScript).
+      - uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      # assets/ is not a member of the root pnpm workspace: without
+      # --ignore-workspace pnpm installs the root workspace instead.
+      - name: Install guard-sandbox assets
+        run: pnpm install --frozen-lockfile --ignore-workspace --dir guard-sandbox/assets
+      - name: Check the assets install
+        run: test -f guard-sandbox/assets/node_modules/typescript/package.json
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+
+  node:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # e2e-playwright's `test` script is the browser suite (needs a live app,
+      # run by guard.yml); here only its static and unit checks run.
+      - name: e2e-playwright typecheck
+        run: pnpm --filter e2e-playwright run typecheck
+      - name: e2e-playwright unit tests
+        run: pnpm --filter e2e-playwright run test:unit
+      - name: e2e-playwright lint
+        run: pnpm --filter e2e-playwright run lint
+      # Catalog rules 1-5 (journeys-catalog.md): routing and smoke blocking rely on
+      # them. Runs `playwright test --list`, which needs no browser and no app.
+      - name: e2e-playwright catalog lint
+        run: pnpm --filter e2e-playwright run catalog:lint
+      - name: Schema tests
+        run: pnpm run test:schemas
+      - name: demo-shop tests
+        run: node --test "examples/demo-shop/test/*.test.mjs"
+      - name: CI config tests
+        run: node --test "ci/tests/*.test.mjs"

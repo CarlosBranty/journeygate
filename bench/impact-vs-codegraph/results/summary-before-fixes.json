@@ -1,0 +1,327 @@
+{
+  "repos": {
+    "hono": {
+      "language": "TypeScript",
+      "ground_truth_tool": "typescript 5.9.3 preProcessFile+resolveModuleName",
+      "universe_files": 459,
+      "gt_edges": 1036,
+      "metric1": {
+        "guard_impact": {
+          "tp": 1031,
+          "fp": 0,
+          "fn": 5,
+          "precision": 1.0,
+          "recall": 0.9951737451737451,
+          "f1": 0.9975810353168842
+        },
+        "codegraph": {
+          "tp": 872,
+          "fp": 962,
+          "fn": 164,
+          "precision": 0.47546346782988,
+          "recall": 0.8416988416988417,
+          "f1": 0.6076655052264808
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 0.9990406215880708,
+          "precision": 1.0,
+          "micro_recall": 0.9972404277337013,
+          "micro_precision": 1.0,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "codegraph": {
+          "recall": 0.9588002165087944,
+          "precision": 0.3954413540909005,
+          "micro_recall": 0.9868920317350811,
+          "micro_precision": 0.32174988753936123,
+          "commits": 50,
+          "empty_predictions": 1
+        },
+        "guard_impact_unbounded": {
+          "recall": 1.0,
+          "precision": 0.9239220860057415,
+          "micro_recall": 1.0,
+          "micro_precision": 0.8690047961630696,
+          "commits": 50,
+          "empty_predictions": 0
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 0.9986086066029966,
+          "precision": 1.0,
+          "micro_recall": 0.9969395562356542,
+          "micro_precision": 1.0,
+          "commits": 46
+        },
+        "codegraph_cli": {
+          "recall": 0.9519164383227887,
+          "precision": 0.47317423025580346,
+          "micro_recall": 0.9854628921193573,
+          "micro_precision": 0.35947530002790956,
+          "commits": 46
+        }
+      },
+      "changed_files_mean": 5.9,
+      "gt_dependents_mean": 57.98,
+      "time": {
+        "guard_impact_index_ms_median": 2303,
+        "guard_impact_index_inproc_ms_median": 2160,
+        "codegraph_index_ms_median": 8291,
+        "guard_impact_query_us_median": 20.5,
+        "codegraph_sdk_query_us_median": 12605.25,
+        "codegraph_cli_affected_ms_median": 578.85365
+      }
+    },
+    "rich": {
+      "language": "Python",
+      "ground_truth_tool": "CPython 3.11.5 ast + importlib.machinery.PathFinder",
+      "universe_files": 213,
+      "gt_edges": 750,
+      "metric1": {
+        "guard_impact": {
+          "tp": 750,
+          "fp": 7,
+          "fn": 0,
+          "precision": 0.9907529722589168,
+          "recall": 1.0,
+          "f1": 0.9953550099535501
+        },
+        "codegraph": {
+          "tp": 714,
+          "fp": 107,
+          "fn": 36,
+          "precision": 0.8696711327649208,
+          "recall": 0.952,
+          "f1": 0.9089751750477403
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "codegraph": {
+          "recall": 0.9851743363138565,
+          "precision": 0.8639736911134697,
+          "micro_recall": 0.9841075794621027,
+          "micro_precision": 0.8769063180827886,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "guard_impact_unbounded": {
+          "recall": 1.0,
+          "precision": 0.9379194282210626,
+          "micro_recall": 1.0,
+          "micro_precision": 0.9379538794750923,
+          "commits": 50,
+          "empty_predictions": 0
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 50
+        },
+        "codegraph_cli": {
+          "recall": 0.0,
+          "precision": null,
+          "micro_recall": 0.0,
+          "micro_precision": null,
+          "commits": 50
+        }
+      },
+      "changed_files_mean": 1.64,
+      "gt_dependents_mean": 147.24,
+      "time": {
+        "guard_impact_index_ms_median": 979,
+        "guard_impact_index_inproc_ms_median": 865,
+        "codegraph_index_ms_median": 4372,
+        "guard_impact_query_us_median": 315.5,
+        "codegraph_sdk_query_us_median": 22555.65,
+        "codegraph_cli_affected_ms_median": 612.88005
+      }
+    },
+    "caddy": {
+      "language": "Go",
+      "ground_truth_tool": "go list -e -json ./... (GOOS=linux GOARCH=amd64) + go/parser ImportsOnly",
+      "universe_files": 379,
+      "gt_edges": 7521,
+      "metric1": {
+        "guard_impact": {
+          "tp": 7521,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "codegraph": {
+          "tp": 927,
+          "fp": 1373,
+          "fn": 6594,
+          "precision": 0.40304347826086956,
+          "recall": 0.12325488631830873,
+          "f1": 0.18877914672640259
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "codegraph": {
+          "recall": 0.7493440960309047,
+          "precision": 0.24122590884163744,
+          "micro_recall": 0.8747843233916687,
+          "micro_precision": 0.2527417746759721,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "guard_impact_unbounded": {
+          "recall": 1.0,
+          "precision": 0.6069127211687038,
+          "micro_recall": 1.0,
+          "micro_precision": 0.8065606361829026,
+          "commits": 50,
+          "empty_predictions": 0
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 50
+        },
+        "codegraph_cli": {
+          "recall": 0.0,
+          "precision": null,
+          "micro_recall": 0.0,
+          "micro_precision": null,
+          "commits": 50
+        }
+      },
+      "changed_files_mean": 2.82,
+      "gt_dependents_mean": 81.14,
+      "time": {
+        "guard_impact_index_ms_median": 1252,
+        "guard_impact_index_inproc_ms_median": 1146,
+        "codegraph_index_ms_median": 9825,
+        "guard_impact_query_us_median": 42.5,
+        "codegraph_sdk_query_us_median": 31128.85,
+        "codegraph_cli_affected_ms_median": 524.9152999999999
+      }
+    },
+    "ripgrep": {
+      "language": "Rust",
+      "ground_truth_tool": "cargo metadata --no-deps + Rust Reference module-tree/use resolver (gt_rust.py)",
+      "universe_files": 101,
+      "gt_edges": 252,
+      "metric1": {
+        "guard_impact": {
+          "tp": 219,
+          "fp": 0,
+          "fn": 33,
+          "precision": 1.0,
+          "recall": 0.8690476190476191,
+          "f1": 0.9299363057324841
+        },
+        "codegraph": {
+          "tp": 175,
+          "fp": 504,
+          "fn": 77,
+          "precision": 0.25773195876288657,
+          "recall": 0.6944444444444444,
+          "f1": 0.37593984962406013
+        }
+      },
+      "metric2": {
+        "guard_impact": {
+          "recall": 0.8204467228677754,
+          "precision": 1.0,
+          "micro_recall": 0.8192419825072886,
+          "micro_precision": 1.0,
+          "commits": 50,
+          "empty_predictions": 0
+        },
+        "codegraph": {
+          "recall": 0.7715330809541334,
+          "precision": 0.15379312855988517,
+          "micro_recall": 0.7784256559766763,
+          "micro_precision": 0.15114633455986415,
+          "commits": 50,
+          "empty_predictions": 8
+        },
+        "guard_impact_unbounded": {
+          "recall": 0.8204467228677754,
+          "precision": 0.9905119047619046,
+          "micro_recall": 0.8192419825072886,
+          "micro_precision": 0.9859649122807017,
+          "commits": 50,
+          "empty_predictions": 0
+        }
+      },
+      "metric2_tests": {
+        "guard_impact": {
+          "recall": 1.0,
+          "precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_precision": 1.0,
+          "commits": 38
+        },
+        "codegraph_cli": {
+          "recall": 0.7192982456140351,
+          "precision": 0.4838709677419355,
+          "micro_recall": 0.6210526315789474,
+          "micro_precision": 0.4796747967479675,
+          "commits": 38
+        }
+      },
+      "changed_files_mean": 1.78,
+      "gt_dependents_mean": 13.72,
+      "time": {
+        "guard_impact_index_ms_median": 741,
+        "guard_impact_index_inproc_ms_median": 659,
+        "codegraph_index_ms_median": 6322,
+        "guard_impact_query_us_median": 20.0,
+        "codegraph_sdk_query_us_median": 21917.5,
+        "codegraph_cli_affected_ms_median": 613.5957000000001
+      }
+    }
+  },
+  "macro": {
+    "f1": {
+      "guard_impact": 0.9807180877507296,
+      "codegraph": 0.520339919156171
+    },
+    "impact_recall": {
+      "guard_impact": 0.9548718361139615,
+      "codegraph": 0.8662129324519223
+    },
+    "impact_precision": {
+      "guard_impact": 1.0,
+      "codegraph": 0.41360852065147324
+    }
+  },
+  "decision": "guard_map_uses_guard_impact",
+  "decision_inputs": {
+    "guard_impact_lower_f1": false,
+    "guard_impact_lower_recall": false
+  }
+}

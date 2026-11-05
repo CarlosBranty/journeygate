@@ -1,0 +1,82 @@
+# LiteLLM proxy for the guard agent lane (docs/contracts/tokens.md,
+# architecture sections 16 and 19.4). The only model endpoint a sandbox can
+# reach. Provider keys, the master key, the database and Redis come from the
+# environment (`os.environ/<NAME>`); this file holds no secret.
+#
+# Sources checked on 2026-11-01 (docs.litellm.ai): tutorials/prompt_caching and
+# the "save Claude Code costs" post (cache_control_injection_points),
+# proxy/caching (cache_params, mode: default_off), proxy/cost_tracking
+# (/spend/logs/v2 needs database_url), observability/opentelemetry (otel
+# callback). Source check (BerriAI/litellm main @ 60fc121):
+# litellm/llms/openai/chat/gpt_transformation.py lists `prompt_cache_key` among
+# the supported OpenAI params, so a client-sent `prompt_cache_key` is forwarded
+# to openai/ deployments with no config.
+#
+# Gateway model names are what agents.toml and task.json use (`model`). Claude
+# Code sends the model name it was started with (`--model`), so a bare Claude
+# name is exposed too.
+#
+# Nothing here has been run against a live proxy: no provider credentials
+# exist on the dev machine.
+
+model_list:
+  # Anthropic-native deployments: inject cache_control on the system message.
+  # LiteLLM adds {"type": "ephemeral"} next to client marks and skips points
+  # that would exceed Anthropic's 4 cached blocks.
+  - model_name: anthropic/claude-sonnet-4-5
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      cache_control_injection_points:
+        - location: message
+          role: system
+  - model_name: claude-opus-5-5
+    litellm_params:
+      model: anthropic/claude-opus-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      cache_control_injection_points:
+        - location: message
+          role: system
+
+  # OpenAI: automatic prompt caching. Runtimes send
+  # prompt_cache_key = "<repo>:<role>" (passed through); no injection points.
+  - model_name: openai/gpt-5
+    litellm_params:
+      model: openai/gpt-5
+      api_key: os.environ/OPENAI_API_KEY
+
+  # Gemini 2.5+: implicit caching. Injecting cache_control would switch it to
+  # paid explicit caching, so no injection points.
+  - model_name: gemini/gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+litellm_settings:
+  # Exact-match response cache, off unless a request opts in. Only
+  # orchestrator-owned keys (judges, summarizers, triage replays; never agent
+  # loops) opt in per request with cache: {"namespace": "<repo>@<commit>"}, so
+  # a hit cannot cross repos or commits.
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: os.environ/REDIS_PORT
+    password: os.environ/REDIS_PASSWORD
+    mode: default_off
+    namespace: guard
+  # GenAI spans to the orchestrator's collector (OTEL_EXPORTER_OTLP_ENDPOINT,
+  # OTEL_EXPORTER_OTLP_PROTOCOL in the proxy environment). Spans carry
+  # run_id, arm and key_alias, never prompt text.
+  callbacks: ["otel"]
+  turn_off_message_logging: true
+
+router_settings:
+  optional_pre_call_checks: ["prompt_caching"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  # Spend logs (/spend/logs/v2) and virtual keys need the proxy database.
+  database_url: os.environ/LITELLM_DATABASE_URL
+  # Anthropic context editing stays off until the spike passes
+  # (deploy/litellm/context-editing-spike.md).

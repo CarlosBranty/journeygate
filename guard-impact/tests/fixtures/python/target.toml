@@ -1,0 +1,15 @@
+version = 1
+
+[app]
+name = "py-fixture"
+languages = ["python"]
+base_url = "http://localhost:8000"
+
+[areas.orders]
+description = "Order placement"
+paths = ["shop/orders/**"]
+
+[areas.payments]
+description = "Payment gateway"
+paths = ["shop/payments/**"]
+sensitive = true

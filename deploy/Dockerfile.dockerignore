@@ -1,0 +1,34 @@
+# Build context is the repository root. Only what deploy/Dockerfile copies is
+# sent: the Cargo workspace (every member, so Cargo can load it) and the files
+# guard-cli embeds with include_str! from outside the crates. Keep this list
+# in sync with the workspace members in Cargo.toml and the COPY lines.
+**
+!Cargo.toml
+!Cargo.lock
+!guard-core/**
+!guard-cli/**
+!guard-jev/**
+!guard-impact/**
+!guard-tracker/**
+!guard-codehost/**
+!guard-store/**
+!guard-server/**
+!guard-mcp/**
+!guard-sandbox/**
+!guard-runtimes/**
+!guard-agents/**
+!guard-map/**
+!guard-gui/**
+!templates/**
+!ci/gitlab/templates/**
+!languages/**
+# Build outputs, dependencies and local state never enter the image.
+**/target/
+**/node_modules/
+**/.guard/
+**/.git
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/.env
+**/.env.*
