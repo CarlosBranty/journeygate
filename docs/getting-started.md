@@ -10,7 +10,7 @@ It describes what the code does today. Where the design in [`propuesta-arquitect
 ## Quick path
 
 ```sh
-sh install.sh                          # 1. install guard (install.ps1 on Windows)
+curl -fsSL https://carlosbranty.github.io/journeygate/install.sh | sh   # 1. install guard (Windows: see section 1)
                                        #    run your app as usual (bun run dev, docker compose up, ...)
 guard init --mcp claude-code --hook    # 2. choose "I start it myself"; writes target.toml,
                                        #    e2e-playwright/, .mcp.json and the hook
@@ -51,30 +51,92 @@ CI has to start the app itself, so step 7 needs the start commands that `init` k
 
 Prebuilt binaries are published as GitHub releases by [`.github/workflows/release.yml`](../.github/workflows/release.yml) on every `v*` tag, for Linux (x86_64, arm64), macOS (Intel, Apple silicon) and Windows (x86_64). Each release asset is `guard-<target>.tar.gz` with a `guard-<target>.tar.gz.sha256` next to it; both installers verify that checksum before they extract anything.
 
+One line, from the installers published on GitHub Pages by [`.github/workflows/pages.yml`](../.github/workflows/pages.yml).
+
 Linux, macOS, or Git Bash on Windows:
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/CarlosBranty/journeygate/main/install/install.sh
-sh install.sh                          # installs to ~/.local/bin
+curl -fsSL https://carlosbranty.github.io/journeygate/install.sh | sh                          # installs to ~/.local/bin
+curl -fsSL https://carlosbranty.github.io/journeygate/install.sh | sh -s -- --profile qa --yes
 ```
 
-Windows PowerShell:
+Windows PowerShell (options come from environment variables, because `iex` takes no arguments):
 
 ```powershell
-Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/CarlosBranty/journeygate/main/install/install.ps1 -OutFile install.ps1
-powershell -ExecutionPolicy Bypass -File install.ps1   # installs to %LOCALAPPDATA%\guard\bin
+irm https://carlosbranty.github.io/journeygate/install.ps1 | iex                                # installs to %LOCALAPPDATA%\guard\bin
+$env:GUARD_PROFILE = 'qa'; irm https://carlosbranty.github.io/journeygate/install.ps1 | iex
 ```
 
-| Variable | Default | Meaning |
+On a terminal the installer asks which profile you want, then asks again before each install. In a script or in CI it asks nothing and installs only the `guard` binary, unless you pass a profile and `--yes`.
+
+### Profiles
+
+| Profile | Checks and offers to install | Used by |
 | --- | --- | --- |
-| `GUARD_VERSION` | `latest` | Release to install, `0.1.0` or `v0.1.0`. |
-| `GUARD_REPO` | `CarlosBranty/journeygate` | `owner/name` of the repository with the releases. |
-| `GUARD_INSTALL_DIR` | `~/.local/bin`, `%LOCALAPPDATA%\guard\bin` | Where the binary goes. |
-| `GITHUB_TOKEN` or `GH_TOKEN` | unset | Sent as an `Authorization` header, never printed. Required while the repository is private. |
+| `cli` | The `guard` binary only. | `guard --version`, and CI runners that bring their own tools. |
+| `qa` (default on a terminal) | `cli`, plus git (required), Node.js 24 or later with npm and npx (required), Playwright Chromium 1.64.1 (recommended), pnpm (optional, only for `gate finalize` with a `pnpm-lock.yaml`) and, on Windows, curl (optional, only for `https://` ready URLs). | `guard doctor`, `init --install`, `test`, `affected`, `suspects`, `gate finalize`. |
+| `factory` | `qa`, plus Docker with Compose v2 (required), git 2.31 or later, gh (optional) and a report on the `claude` and `codex` CLIs. | `test --docker`, `repro`, the agent lane and the deploy stack. |
 
-Both installers print a hint when the install directory is not on your `PATH`.
+In `factory`, the agent CLIs run inside the sandbox image and are not required on the host. Postgres and LiteLLM are services, not packages: run the deploy stack (`deploy/docker-compose.yml`, see [`deploy/README.md`](../deploy/README.md)) and set `DATABASE_URL`. Rust is in no profile; it is only needed to build from source (below).
 
-**While the guard repository is private**, the download links need a token with read access to it. With the GitHub CLI:
+### Options
+
+`install.sh` takes flags (after `sh -s --` when piped) or environment variables. `install.ps1` takes the environment variables only.
+
+| Flag (`install.sh`) | Environment | Meaning |
+| --- | --- | --- |
+| `--profile cli\|qa\|factory` | `GUARD_PROFILE` | Dependency profile. Default: asked on a terminal (preselected `qa`), `cli` otherwise. |
+| `--yes`, `-y` | `GUARD_YES=1` | No questions. Accept the installs that need no sudo or administrator rights. |
+| `--allow-sudo` | `GUARD_ALLOW_SUDO=1` | Allow sudo (elevation on Windows) for package-manager commands when there is nobody to ask. |
+| `--dry-run` | `GUARD_DRY_RUN=1` | Detect and print the plan. No network, no installs, no writes outside a temporary directory. |
+| `--from-source` | `GUARD_FROM_SOURCE=1` | Build with cargo instead of downloading a prebuilt binary. |
+| `--no-deps` | `GUARD_NO_DEPS=1` | Install the binary only; the same as profile `cli`. |
+| `--help`, `-h` | | Print the usage. |
+| | `GUARD_VERSION` | Release to install, `0.1.0` or `v0.1.0`. Default `latest`. |
+| | `GUARD_REPO` | `owner/name` of the repository with the releases. Default `CarlosBranty/journeygate`. |
+| | `GUARD_INSTALL_DIR` | Where the binary goes. Default `~/.local/bin`, or `%LOCALAPPDATA%\guard\bin` on Windows. |
+| | `GITHUB_TOKEN` or `GH_TOKEN` | Sent as an `Authorization` header, never printed. Required while the repository is private. |
+| | `GUARD_ASSET_FILE` | A local `guard-<target>.tar.gz` to install instead of downloading one (offline installs). |
+| | `GUARD_ASSET_SHA256` | The expected sha256 of `GUARD_ASSET_FILE`. Default: the first field of `${GUARD_ASSET_FILE}.sha256`. |
+| | `NO_COLOR` | Disable colors. Colors and progress bars only appear on a terminal anyway. |
+
+### What the installer will and will not do
+
+- It installs nothing without your consent: a `[y/N]` question on a terminal, or `--yes` in a script.
+- It never runs sudo silently. A command that needs administrator rights is printed first and asked about separately. Without a terminal it runs only with `--allow-sudo`; otherwise the summary lists it for you to run. It never runs `brew` as root, and on Windows it says when winget may show a UAC prompt.
+- `--dry-run` prints every command it would run and runs none of them.
+- Before the first apt install it refreshes the package lists (`sudo apt-get update`, asked like any sudo command). pacman installs use `-Syu --needed`, because Arch does not support partial upgrades. winget installs pass `--accept-source-agreements --accept-package-agreements`: your answer to the installer's question is the consent.
+- Node.js comes from your package manager only when that offers version 24 or later; otherwise the installer points at [nodejs.org](https://nodejs.org/en/download). It never pipes the NodeSource setup script into a shell.
+- It never installs agent CLIs (`claude`, `codex`); it only reports whether they are on `PATH`.
+- A failed dependency install is a warning. Only a failed `guard` install makes the installer exit with an error.
+- It does not run `guard doctor`, which checks a project and needs a `target.toml`. Run it from your app repository.
+- On Windows it offers to add the install directory to your user `PATH` (no administrator rights needed). On Linux and macOS it prints a hint when the directory is not on your `PATH`.
+
+**To look at the script before you run it**, download it first:
+
+```sh
+curl -fsSLO https://carlosbranty.github.io/journeygate/install.sh
+sh install.sh --dry-run                # see the plan, then run it without --dry-run
+```
+
+```powershell
+Invoke-WebRequest -UseBasicParsing https://carlosbranty.github.io/journeygate/install.ps1 -OutFile install.ps1
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+**While the guard repository is private**, the release downloads need a token with read access to it (the installer scripts on Pages are public). With the GitHub CLI:
+
+```sh
+curl -fsSL https://carlosbranty.github.io/journeygate/install.sh | GITHUB_TOKEN="$(gh auth token)" sh
+```
+
+```powershell
+$env:GITHUB_TOKEN = gh auth token; irm https://carlosbranty.github.io/journeygate/install.ps1 | iex; Remove-Item Env:GITHUB_TOKEN
+```
+
+The token stays in the installer: neither script passes it to the commands it runs (winget, rustup, cargo, npx, package managers). On Windows the last command removes it from your session again.
+
+Or fetch the script through the API and run it:
 
 ```sh
 gh api repos/CarlosBranty/journeygate/contents/install/install.sh -H "Accept: application/vnd.github.raw" > install.sh
@@ -83,7 +145,13 @@ GITHUB_TOKEN="$(gh auth token)" sh install.sh
 
 With a token the installers resolve the assets through the REST API (`/repos/<repo>/releases/latest` or `/releases/tags/v<version>`), because github.com download links of a private repository need a browser session.
 
-**From source** (before the first release, or to run unreleased code). Requirements: Rust 1.88 (`rust-toolchain.toml` pins it; `rustup` installs it on first build) and Git:
+**From source** (before the first release, on a platform without a prebuilt binary, or to run unreleased code). `--from-source` (`GUARD_FROM_SOURCE=1` on Windows) runs `cargo install --locked --git`, from the `v<version>` tag when `GUARD_VERSION` is set and from the default branch otherwise. It needs Rust 1.88 or later, Git, and a C compiler and linker (cargo links through it, and some dependencies compile C code). When Rust is missing or too old, the installer offers the official rustup. When the C toolchain is missing, it offers `build-essential` (Debian, Ubuntu), `gcc` (Fedora) or `base-devel` (Arch) through your package manager, `xcode-select --install` on macOS, and the MSVC Build Tools on Windows (both `install.ps1` and Git Bash). It also offers this build when no prebuilt binary matches your platform, or, on a terminal, when no release exists yet. A private repository uses your git credentials (for example `gh auth setup-git`); the token is not passed to cargo.
+
+```sh
+curl -fsSL https://carlosbranty.github.io/journeygate/install.sh | sh -s -- --from-source
+```
+
+Or by hand, from a clone (`rust-toolchain.toml` pins Rust 1.88; `rustup` installs it on the first build):
 
 ```sh
 git clone <url of this repository> e2e-agentdev
@@ -99,7 +167,7 @@ Every way ends with:
 guard --version
 ```
 
-Your app also needs Node 24 for the Playwright project, and Docker when its infrastructure runs with Docker Compose.
+Your app also needs Node 24 for the Playwright project (profile `qa` checks it), and Docker when its infrastructure runs with Docker Compose (profile `factory`).
 
 ## 2. guard init
 

@@ -1,0 +1,67 @@
+# Publishes the two installers on GitHub Pages, so they install with one line:
+#   curl -fsSL <pages url>/install.sh, piped to sh
+#   irm <pages url>/install.ps1, piped to iex
+# The installers hardcode no Pages host; the index page takes the URL from
+# configure-pages, so a custom domain needs no change here.
+# Owner setup (once): Settings > Pages > Source "GitHub Actions".
+# ci/tests/install.test.mjs checks this file.
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['install/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Build the site
+        env:
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -eu
+          mkdir site && cp install/install.sh install/install.ps1 site/
+          cd site
+          sha256sum install.sh > install.sh.sha256
+          sha256sum install.ps1 > install.ps1.sha256
+          cat > index.html <<EOF
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>guard installer</title>
+          <h1>guard installer</h1>
+          <p>Linux, macOS, Git Bash:</p>
+          <pre>curl -fsSL ${BASE_URL}/install.sh | sh</pre>
+          <p>Choose a profile (cli, qa, factory):</p>
+          <pre>curl -fsSL ${BASE_URL}/install.sh | sh -s -- --profile qa</pre>
+          <p>Windows PowerShell:</p>
+          <pre>irm ${BASE_URL}/install.ps1 | iex</pre>
+          <p><a href="install.sh">install.sh</a> (<a href="install.sh.sha256">sha256</a>),
+          <a href="install.ps1">install.ps1</a> (<a href="install.ps1.sha256">sha256</a>)</p>
+          EOF
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
