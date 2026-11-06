@@ -169,10 +169,7 @@ fn md_escapes_pipes_and_newlines() {
     assert!(md.contains("Bug de la app"), "{md}");
     assert!(md.contains("Mantenimiento del suite"), "{md}");
     assert!(md.contains("**Veredicto:** La fila 1"), "{md}");
-    assert!(
-        md.contains("1. `orders.list`, `orders.list-mx`"),
-        "{md}"
-    );
+    assert!(md.contains("1. `orders.list`, `orders.list-mx`"), "{md}");
     assert!(md.contains("2. -"), "{md}");
 }
 
