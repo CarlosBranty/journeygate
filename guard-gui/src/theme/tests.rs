@@ -1,6 +1,6 @@
 use super::*;
 use crate::results::Outcome;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[test]
 fn a_result_decides_the_state_first() {
@@ -52,23 +52,16 @@ fn an_area_shows_its_worst_journey() {
 
 #[test]
 fn windows_fonts_prefer_segoe_ui_and_jetbrains_mono() {
-    let fonts = font_candidates(
-        true,
-        Some(Path::new(r"C:\Windows")),
-        Some(Path::new(r"C:\Users\me\AppData\Local")),
-    );
-    assert_eq!(fonts.ui[0], PathBuf::from(r"C:\Windows\Fonts\segoeui.ttf"));
-    assert_eq!(
-        fonts.mono[0],
-        PathBuf::from(
-            r"C:\Users\me\AppData\Local\Microsoft\Windows\Fonts\JetBrainsMono-Regular.ttf"
-        )
-    );
-    assert!(
-        fonts
-            .mono
-            .contains(&PathBuf::from(r"C:\Windows\Fonts\consola.ttf"))
-    );
+    // Expected paths are built with join, like the code, so the test also
+    // holds on Linux CI where a backslash is not a separator.
+    let windir = Path::new(r"C:\Windows");
+    let local = Path::new(r"C:\Users\me\AppData\Local");
+    let fonts = font_candidates(true, Some(windir), Some(local));
+    let system = windir.join("Fonts");
+    let user = local.join("Microsoft").join("Windows").join("Fonts");
+    assert_eq!(fonts.ui[0], system.join("segoeui.ttf"));
+    assert_eq!(fonts.mono[0], user.join("JetBrainsMono-Regular.ttf"));
+    assert!(fonts.mono.contains(&system.join("consola.ttf")));
 }
 
 #[test]

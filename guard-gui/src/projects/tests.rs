@@ -117,6 +117,8 @@ fn strip_verbatim_turns_extended_paths_into_plain_ones() {
 #[test]
 fn display_name_is_the_folder_name() {
     assert_eq!(display_name(Path::new("/w/demo-shop")), "demo-shop");
+    // A drive path is only a path on Windows; elsewhere it is one file name.
+    #[cfg(windows)]
     assert_eq!(display_name(Path::new(r"C:\work\Shop\")), "Shop");
     assert_eq!(display_name(Path::new("/")), "/");
 }
